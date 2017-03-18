@@ -1,0 +1,153 @@
+{
+	"hp_space": {
+		"model": {
+		    "class_name": "RNN",
+		    "config": {
+		        "node_type": "hp_choice",
+		        "value": [
+		            {
+				"cell_type": "lstm",
+				"layers": {
+		                    "node_type": "hp_list",
+		                    "value": [
+		                        {
+		                            "max_val": 100,
+		                            "min_val": 10,
+		                            "node_type": "hp_int"
+		                        }
+		                    ]
+		                },
+		                "activation": {
+		                    "node_type": "hp_choice",
+		                    "value": [
+		                        "relu",
+		                        "tanh",
+		                        "sigmoid"
+		                    ]
+		                },
+		                "batch_size": {
+		                    "max_val": 300,
+		                    "min_val": 20,
+		                    "node_type": "hp_int"
+		                },
+		                "dropout": {
+		                    "max_val": 0.5,
+		                    "min_val": 0,
+		                    "node_type": "hp_float"
+		                },
+		                "learning_rate": {
+		                    "max_val": 0.001,
+		                    "min_val": 1e-05,
+		                    "node_type": "hp_float"
+		                },
+		                "num_epochs": {
+		                    "max_val": 400,
+		                    "min_val": 100,
+		                    "node_type": "hp_int"
+		                },
+		                "opt": {
+		                    "node_type": "hp_choice",
+		                    "value": [
+		                        "rmsprop",
+		                        "adagrad",
+		                        "adam"
+		                    ]
+		                }
+		            },
+		            {
+				"cell_type": "lstm",
+				"layers": {
+		                    "node_type": "hp_list",
+		                    "value": [
+		                        {
+		                            "max_val": 100,
+		                            "min_val": 10,
+		                            "node_type": "hp_int"
+		                        },
+		                        {
+		                            "max_val": 100,
+		                            "min_val": 10,
+		                            "node_type": "hp_int"
+		                        }
+		                    ]
+		                },
+		                "activation": {
+		                    "node_type": "hp_choice",
+		                    "value": [
+		                        "relu",
+		                        "tanh",
+		                        "sigmoid"
+		                    ]
+		                },
+		                "batch_size": {
+		                    "max_val": 300,
+		                    "min_val": 20,
+		                    "node_type": "hp_int"
+		                },		                
+		                "dropout": {
+		                    "node_type": "hp_list",
+		                    "value": [
+		                        {
+		                            "max_val": 0.5,
+		                            "min_val": 0,
+		                            "node_type": "hp_float"
+		                        },
+		                        {
+		                            "max_val": 0.5,
+		                            "min_val": 0,
+		                            "node_type": "hp_float"
+		                        }
+		                    ]
+		                },
+		                "learning_rate": {
+		                    "max_val": 0.001,
+		                    "min_val": 1e-05,
+		                    "node_type": "hp_float"
+		                },
+		                "num_epochs": {
+		                    "max_val": 400,
+		                    "min_val": 100,
+		                    "node_type": "hp_int"
+		                },
+		                "opt": {
+		                    "node_type": "hp_choice",
+		                    "value": [
+		                        "rmsprop",
+		                        "adagrad",
+		                        "adam"
+		                    ]
+		                }
+		            }
+		        ]
+		    }
+		}
+	},
+
+	"opt": {
+	    "method": "cmaes",
+	    "params": {
+			"pop_size": 5,
+			"max_iter": 2
+		},
+	
+		"obj_fn": {
+			"type": "cv",
+			"method": "time_series",
+			"params": {
+				"window": 2772,
+				"horizon": 252, 
+				"fixed": false,
+				"by": 252
+			}
+		}
+  	},
+
+	"data_set": {
+		"data_x": {
+			"path": "data/sp500_train_x.csv"
+		},
+    		"data_y": {
+			"path": "data/sp500_train_y.csv"
+    		}
+  	}
+}
