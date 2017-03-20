@@ -23,15 +23,17 @@ def sp500_data_set():
 
 
 def mg_data_set():
+
+    look_back = 10
+    look_ahead = 1
+
     mg = mackey_glass(sample_len=9020, seed=42)
 
     # split into train and test sets
-    train = mg[:8010]
-    test = mg[8010:]
+    train = mg[:(8000+look_back)]
+    test = mg[(8000+look_back):]
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
-    look_back = 10
-    look_ahead = 1
     x_train, y_train = create_dataset(train, look_back, look_ahead)
     x_test, y_test = create_dataset(test, look_back, look_ahead)
 

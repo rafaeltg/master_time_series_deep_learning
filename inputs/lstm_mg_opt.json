@@ -6,8 +6,9 @@
 		        "node_type": "hp_choice",
 		        "value": [
 		            {
-				"cell_type": "lstm",
-				"layers": {
+						"name": "lstm_mg",
+						"cell_type": "lstm",
+						"layers": {
 		                    "node_type": "hp_list",
 		                    "value": [
 		                        {
@@ -55,8 +56,9 @@
 		                }
 		            },
 		            {
-				"cell_type": "lstm",
-				"layers": {
+						"name": "lstm_mg",
+						"cell_type": "lstm",
+						"layers": {
 		                    "node_type": "hp_list",
 		                    "value": [
 		                        {
@@ -83,7 +85,7 @@
 		                    "max_val": 300,
 		                    "min_val": 20,
 		                    "node_type": "hp_int"
-		                },		                
+		                },
 		                "dropout": {
 		                    "node_type": "hp_list",
 		                    "value": [
@@ -129,7 +131,7 @@
 			"pop_size": 5,
 			"max_iter": 2
 		},
-	
+
 		"obj_fn": {
 			"type": "cv",
 			"method": "time_series",
@@ -144,10 +146,16 @@
 
 	"data_set": {
 		"data_x": {
-			"path": "data/mg_train_x.csv"
+			"path": "data/mg_train_x.csv",
+			"params": {
+				"has_header": false
+			}
 		},
  	   	"data_y": {
-			"path": "data/mg_train_y.csv"
+			"path": "data/mg_train_y.csv",
+			"params": {
+				"has_header": false
+			}
  	   	}
   	}
 }
