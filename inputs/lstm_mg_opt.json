@@ -133,13 +133,14 @@
 		},
 
 		"obj_fn": {
-			"type": "cv",
-			"method": "time_series",
-			"params": {
-				"window": 6000,
-				"horizon": 500,
-				"fixed": false,
-				"by": 500
+			"cv": {
+				"method": "time_series",
+				"params": {
+					"window": 6000,
+					"horizon": 500,
+					"fixed": false,
+					"by": 500
+				}
 			}
 		}
   	},
