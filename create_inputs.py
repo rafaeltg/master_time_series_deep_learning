@@ -19,8 +19,7 @@ cv_params = {
 
 
 def create_opt_inputs():
-
-    for m in ['lstm', 'mlp']:
+    for m in ['lstm', 'sae', 'sdae', 'mlp']:
         for d in ['sp500', 'mg']:
             inp = {
                 "hp_space": load_json('models/%s_%s.json' % (m, d)),
