@@ -1,156 +1,237 @@
 {
-	"hp_space": {
-		"model": {
-		    "class_name": "RNN",
-		    "config": {
-		        "node_type": "hp_choice",
-		        "value": [
-		            {
-						"name": "lstm_sp500",
-						"cell_type": "lstm",
-						"layers": {
-		                    "node_type": "hp_list",
-		                    "value": [
-		                        {
-		                            "max_val": 100,
-		                            "min_val": 10,
-		                            "node_type": "hp_int"
-		                        }
-		                    ]
-		                },
-		                "activation": {
-		                    "node_type": "hp_choice",
-		                    "value": [
-		                        "relu",
-		                        "tanh",
-		                        "sigmoid"
-		                    ]
-		                },
-		                "batch_size": {
-		                    "max_val": 300,
-		                    "min_val": 20,
-		                    "node_type": "hp_int"
-		                },
-		                "dropout": {
-		                    "max_val": 0.5,
-		                    "min_val": 0,
-		                    "node_type": "hp_float"
-		                },
-		                "learning_rate": {
-		                    "max_val": 0.001,
-		                    "min_val": 1e-05,
-		                    "node_type": "hp_float"
-		                },
-		                "num_epochs": {
-		                    "max_val": 400,
-		                    "min_val": 100,
-		                    "node_type": "hp_int"
-		                },
-		                "opt": {
-		                    "node_type": "hp_choice",
-		                    "value": [
-		                        "rmsprop",
-		                        "adagrad",
-		                        "adam"
-		                    ]
-		                }
-		            },
-		            {
-						"name": "lstm_sp500",
-						"cell_type": "lstm",
-						"layers": {
-		                    "node_type": "hp_list",
-		                    "value": [
-		                        {
-		                            "max_val": 100,
-		                            "min_val": 10,
-		                            "node_type": "hp_int"
-		                        },
-		                        {
-		                            "max_val": 100,
-		                            "min_val": 10,
-		                            "node_type": "hp_int"
-		                        }
-		                    ]
-		                },
-		                "activation": {
-		                    "node_type": "hp_choice",
-		                    "value": [
-		                        "relu",
-		                        "tanh",
-		                        "sigmoid"
-		                    ]
-		                },
-		                "batch_size": {
-		                    "max_val": 300,
-		                    "min_val": 20,
-		                    "node_type": "hp_int"
-		                },		                
-		                "dropout": {
-		                    "node_type": "hp_list",
-		                    "value": [
-		                        {
-		                            "max_val": 0.5,
-		                            "min_val": 0,
-		                            "node_type": "hp_float"
-		                        },
-		                        {
-		                            "max_val": 0.5,
-		                            "min_val": 0,
-		                            "node_type": "hp_float"
-		                        }
-		                    ]
-		                },
-		                "learning_rate": {
-		                    "max_val": 0.001,
-		                    "min_val": 1e-05,
-		                    "node_type": "hp_float"
-		                },
-		                "num_epochs": {
-		                    "max_val": 400,
-		                    "min_val": 100,
-		                    "node_type": "hp_int"
-		                },
-		                "opt": {
-		                    "node_type": "hp_choice",
-		                    "value": [
-		                        "rmsprop",
-		                        "adagrad",
-		                        "adam"
-		                    ]
-		                }
-		            }
-		        ]
-		    }
-		}
-	},
-
-	"opt": {
-	    "method": "cmaes",
-	    "params": {
-			"pop_size": 5,
-			"max_iter": 2
-		},
-	
-		"obj_fn": {
-			"cv": {
-              "method": "time_series",
-              "params": {
-                "window": 2772,
-                "horizon": 252,
-                "fixed": false,
-                "by": 252
-              }
-			}
-		}
-  	},
-
-	"data_set": {
-		"data_x": {
-			"path": "data/sp500_train_x.csv"
-		},
-    		"data_y": {
-			"path": "data/sp500_train_y.csv"
-    		}
-  	}
+    "opt": {
+        "obj_fn": {
+            "cv": {
+                "params": {
+                    "by": 252,
+                    "horizon": 252,
+                    "fixed": false,
+                    "window": 2772
+                },
+                "method": "time_series"
+            }
+        },
+        "params": {
+            "max_iter": 2,
+            "pop_size": 5
+        },
+        "method": "cmaes"
+    },
+    "data_set": {
+        "data_x": {
+            "path": "data/sp500_train_x.csv",
+            "params": {
+                "has_header": false
+            }
+        },
+        "data_y": {
+            "path": "data/sp500_train_y.csv",
+            "params": {
+                "has_header": false
+            }
+        }
+    },
+    "hp_space": {
+        "model": {
+            "class_name": "RNN",
+            "config": {
+                "value": [
+                    {
+                        "num_epochs": {
+                            "min_val": 100,
+                            "max_val": 500,
+                            "node_type": "hp_int"
+                        },
+                        "learning_rate": {
+                            "min_val": 0.0001,
+                            "max_val": 0.01,
+                            "node_type": "hp_float"
+                        },
+                        "stateful": false,
+                        "batch_size": {
+                            "min_val": 32,
+                            "max_val": 512,
+                            "node_type": "hp_int"
+                        },
+                        "opt": {
+                            "value": [
+                                "adam",
+                                "rmsprop",
+                                "adadelta"
+                            ],
+                            "node_type": "hp_choice"
+                        },
+                        "layers": {
+                            "value": [
+                                {
+                                    "min_val": 10,
+                                    "max_val": 512,
+                                    "node_type": "hp_int"
+                                }
+                            ],
+                            "node_type": "hp_list"
+                        },
+                        "cell_type": "lstm",
+                        "dropout": {
+                            "min_val": 0,
+                            "max_val": 0.5,
+                            "node_type": "hp_float"
+                        },
+                        "name": "lstm_sp500",
+                        "activation": {
+                            "value": [
+                                "relu",
+                                "tanh",
+                                "sigmoid"
+                            ],
+                            "node_type": "hp_choice"
+                        }
+                    },
+                    {
+                        "num_epochs": {
+                            "min_val": 100,
+                            "max_val": 500,
+                            "node_type": "hp_int"
+                        },
+                        "learning_rate": {
+                            "min_val": 0.0001,
+                            "max_val": 0.01,
+                            "node_type": "hp_float"
+                        },
+                        "stateful": false,
+                        "batch_size": {
+                            "min_val": 32,
+                            "max_val": 512,
+                            "node_type": "hp_int"
+                        },
+                        "opt": {
+                            "value": [
+                                "adam",
+                                "rmsprop",
+                                "adadelta"
+                            ],
+                            "node_type": "hp_choice"
+                        },
+                        "layers": {
+                            "value": [
+                                {
+                                    "min_val": 10,
+                                    "max_val": 512,
+                                    "node_type": "hp_int"
+                                },
+                                {
+                                    "min_val": 10,
+                                    "max_val": 512,
+                                    "node_type": "hp_int"
+                                }
+                            ],
+                            "node_type": "hp_list"
+                        },
+                        "cell_type": "lstm",
+                        "dropout": {
+                            "value": [
+                                {
+                                    "min_val": 0,
+                                    "max_val": 0.5,
+                                    "node_type": "hp_float"
+                                },
+                                {
+                                    "min_val": 0,
+                                    "max_val": 0.5,
+                                    "node_type": "hp_float"
+                                }
+                            ],
+                            "node_type": "hp_list"
+                        },
+                        "name": "lstm_sp500",
+                        "activation": {
+                            "value": [
+                                "relu",
+                                "tanh",
+                                "sigmoid"
+                            ],
+                            "node_type": "hp_choice"
+                        }
+                    },
+                    {
+                        "num_epochs": {
+                            "min_val": 100,
+                            "max_val": 500,
+                            "node_type": "hp_int"
+                        },
+                        "learning_rate": {
+                            "min_val": 0.0001,
+                            "max_val": 0.01,
+                            "node_type": "hp_float"
+                        },
+                        "stateful": false,
+                        "batch_size": {
+                            "min_val": 32,
+                            "max_val": 512,
+                            "node_type": "hp_int"
+                        },
+                        "opt": {
+                            "value": [
+                                "adam",
+                                "rmsprop",
+                                "adadelta"
+                            ],
+                            "node_type": "hp_choice"
+                        },
+                        "layers": {
+                            "value": [
+                                {
+                                    "min_val": 10,
+                                    "max_val": 512,
+                                    "node_type": "hp_int"
+                                },
+                                {
+                                    "min_val": 10,
+                                    "max_val": 512,
+                                    "node_type": "hp_int"
+                                },
+                                {
+                                    "min_val": 10,
+                                    "max_val": 512,
+                                    "node_type": "hp_int"
+                                }
+                            ],
+                            "node_type": "hp_list"
+                        },
+                        "cell_type": "lstm",
+                        "dropout": {
+                            "value": [
+                                {
+                                    "min_val": 0,
+                                    "max_val": 0.5,
+                                    "node_type": "hp_float"
+                                },
+                                {
+                                    "min_val": 0,
+                                    "max_val": 0.5,
+                                    "node_type": "hp_float"
+                                },
+                                {
+                                    "min_val": 0,
+                                    "max_val": 0.5,
+                                    "node_type": "hp_float"
+                                }
+                            ],
+                            "node_type": "hp_list"
+                        },
+                        "name": "lstm_sp500",
+                        "activation": {
+                            "value": [
+                                "relu",
+                                "tanh",
+                                "sigmoid"
+                            ],
+                            "node_type": "hp_choice"
+                        }
+                    }
+                ],
+                "node_type": "hp_choice"
+            }
+        }
+    }
 }

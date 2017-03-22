@@ -1,0 +1,227 @@
+{
+    "model": {
+        "class_name": "MLP",
+        "config": {
+            "node_type": "hp_choice",
+            "value": [
+                {
+                    "name": "mlp_mg",
+                    "layers": {
+                        "node_type": "hp_list",
+                        "value": [
+                            {
+                                "max_val": 512,
+                                "node_type": "hp_int",
+                                "min_val": 10
+                            }
+                        ]
+                    },
+                    "learning_rate": {
+                        "max_val": 0.01,
+                        "node_type": "hp_float",
+                        "min_val": 0.0001
+                    },
+                    "l2_reg": {
+                        "max_val": 0.001,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "activation": {
+                        "node_type": "hp_choice",
+                        "value": [
+                            "relu",
+                            "tanh",
+                            "sigmoid"
+                        ]
+                    },
+                    "dropout": {
+                        "max_val": 0.5,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "num_epochs": {
+                        "max_val": 500,
+                        "node_type": "hp_int",
+                        "min_val": 100
+                    },
+                    "opt": {
+                        "node_type": "hp_choice",
+                        "value": [
+                            "adam",
+                            "rmsprop",
+                            "adadelta"
+                        ]
+                    },
+                    "l1_reg": {
+                        "max_val": 0.001,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "batch_size": {
+                        "max_val": 512,
+                        "node_type": "hp_int",
+                        "min_val": 32
+                    }
+                },
+                {
+                    "name": "mlp_mg",
+                    "layers": {
+                        "node_type": "hp_list",
+                        "value": [
+                            {
+                                "max_val": 512,
+                                "node_type": "hp_int",
+                                "min_val": 10
+                            },
+                            {
+                                "max_val": 512,
+                                "node_type": "hp_int",
+                                "min_val": 10
+                            }
+                        ]
+                    },
+                    "learning_rate": {
+                        "max_val": 0.01,
+                        "node_type": "hp_float",
+                        "min_val": 0.0001
+                    },
+                    "l2_reg": {
+                        "max_val": 0.001,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "activation": {
+                        "node_type": "hp_choice",
+                        "value": [
+                            "relu",
+                            "tanh",
+                            "sigmoid"
+                        ]
+                    },
+                    "dropout": {
+                        "node_type": "hp_list",
+                        "value": [
+                            {
+                                "max_val": 0.5,
+                                "node_type": "hp_float",
+                                "min_val": 0
+                            },
+                            {
+                                "max_val": 0.5,
+                                "node_type": "hp_float",
+                                "min_val": 0
+                            }
+                        ]
+                    },
+                    "num_epochs": {
+                        "max_val": 500,
+                        "node_type": "hp_int",
+                        "min_val": 100
+                    },
+                    "opt": {
+                        "node_type": "hp_choice",
+                        "value": [
+                            "adam",
+                            "rmsprop",
+                            "adadelta"
+                        ]
+                    },
+                    "l1_reg": {
+                        "max_val": 0.001,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "batch_size": {
+                        "max_val": 512,
+                        "node_type": "hp_int",
+                        "min_val": 32
+                    }
+                },
+                {
+                    "name": "mlp_mg",
+                    "layers": {
+                        "node_type": "hp_list",
+                        "value": [
+                            {
+                                "max_val": 512,
+                                "node_type": "hp_int",
+                                "min_val": 10
+                            },
+                            {
+                                "max_val": 512,
+                                "node_type": "hp_int",
+                                "min_val": 10
+                            },
+                            {
+                                "max_val": 512,
+                                "node_type": "hp_int",
+                                "min_val": 10
+                            }
+                        ]
+                    },
+                    "learning_rate": {
+                        "max_val": 0.01,
+                        "node_type": "hp_float",
+                        "min_val": 0.0001
+                    },
+                    "l2_reg": {
+                        "max_val": 0.001,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "activation": {
+                        "node_type": "hp_choice",
+                        "value": [
+                            "relu",
+                            "tanh",
+                            "sigmoid"
+                        ]
+                    },
+                    "dropout": {
+                        "node_type": "hp_list",
+                        "value": [
+                            {
+                                "max_val": 0.5,
+                                "node_type": "hp_float",
+                                "min_val": 0
+                            },
+                            {
+                                "max_val": 0.5,
+                                "node_type": "hp_float",
+                                "min_val": 0
+                            },
+                            {
+                                "max_val": 0.5,
+                                "node_type": "hp_float",
+                                "min_val": 0
+                            }
+                        ]
+                    },
+                    "num_epochs": {
+                        "max_val": 500,
+                        "node_type": "hp_int",
+                        "min_val": 100
+                    },
+                    "opt": {
+                        "node_type": "hp_choice",
+                        "value": [
+                            "adam",
+                            "rmsprop",
+                            "adadelta"
+                        ]
+                    },
+                    "l1_reg": {
+                        "max_val": 0.001,
+                        "node_type": "hp_float",
+                        "min_val": 0
+                    },
+                    "batch_size": {
+                        "max_val": 512,
+                        "node_type": "hp_int",
+                        "min_val": 32
+                    }
+                }
+            ]
+        }
+    }
+}
