@@ -27,8 +27,9 @@ def create_opt_inputs():
                 "opt": {
                     "method": "cmaes",
                     "params": {
-                        "pop_size": 5,
-                        "max_iter": 2
+                        "pop_size": 4,
+                        "max_iter": 2,
+                        "max_threads": 4
                     },
 
                     "obj_fn": {
@@ -41,13 +42,13 @@ def create_opt_inputs():
 
                 'data_set': {
                     "data_x": {
-                        "path": "data/%s_train_x.csv" % d,
+                        "path": "data/%s_train_x.npy" % d,
                         "params": {
                             "has_header": False
                         }
                     },
                     "data_y": {
-                        "path": "data/%s_train_y.csv" % d,
+                        "path": "data/%s_train_y.npy" % d,
                         "params": {
                             "has_header": False
                         }
@@ -58,11 +59,50 @@ def create_opt_inputs():
 
 
 def create_cv_inputs():
-    pass
+    for m in ['lstm', 'sae', 'sdae', 'mlp']:
+        for d in ['sp500', 'mg']:
+            inp = {
+                "model": "results/opt/%s_%s.json" % (m, d),
+
+                "cv": {
+                    "method": "time_series",
+                    "params": cv_params[d]
+                },
+
+                'data_set': {
+                    "data_x": {
+                        "path": "data/%s_train_x.npy" % d,
+                        "params": {
+                            "has_header": False
+                        }
+                    },
+                    "data_y": {
+                        "path": "data/%s_train_y.npy" % d,
+                        "params": {
+                            "has_header": False
+                        }
+                    }
+                }
+            }
+            save_json(inp, 'inputs/%s_%s_cv.json' % (m, d))
 
 
 def create_pred_inputs():
-    pass
+    for m in ['lstm', 'sae', 'sdae', 'mlp']:
+        for d in ['sp500', 'mg']:
+            inp = {
+                "model": "results/opt/%s_%s.json" % (m, d),
+
+                'data_set': {
+                    "data_x": {
+                        "path": "data/%s_test_x.npy" % d,
+                        "params": {
+                            "has_header": False
+                        }
+                    }
+                }
+            }
+            save_json(inp, 'inputs/%s_%s_pred.json' % (m, d))
 
 
 if __name__ == '__main__':

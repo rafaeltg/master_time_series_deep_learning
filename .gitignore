@@ -5,3 +5,7 @@ __pycache__/
 
 .gitignore
 .idea/
+data/
+inputs/
+models/
+results/
