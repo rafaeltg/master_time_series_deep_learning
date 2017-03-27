@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p {data,inputs,models,results/{opt,cv,pred}}
+mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
 
 python3.5 create_datasets.py &
 python3.5 create_models.py
@@ -28,6 +28,9 @@ do_operation 'optimize' 'opt'
 
 # PREDS
 #do_operation 'predict' 'pred'
+
+# SCORES
+#do_operation 'evaluate' 'eval'
 
 
 #tar -zcf results.tar.gz results/
