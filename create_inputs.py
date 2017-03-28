@@ -11,9 +11,9 @@ cv_params = {
 
     'mg': {
         "window": 6000,
-        "horizon": 500,
+        "horizon": 1000,
         "fixed": False,
-        "by": 500
+        "by": 1000
     }
 }
 
@@ -25,11 +25,12 @@ def create_opt_inputs():
                 "hp_space": load_json('models/%s_%s.json' % (m, d)),
 
                 "opt": {
-                    "method": "cmaes",
-                    "params": {
-                        "pop_size": 4,
-                        "max_iter": 1,
-                        "max_threads": 4
+                    "method": {
+                        "class": "cmaes",
+                        "params": {
+                            "pop_size": 4,
+                            "max_iter": 1
+                        }
                     },
 
                     "obj_fn": {
@@ -37,7 +38,9 @@ def create_opt_inputs():
                             "method": "time_series",
                             "params": cv_params[d]
                         }
-                    }
+                    },
+
+                    "max_threads": 4
                 },
 
                 'data_set': {
