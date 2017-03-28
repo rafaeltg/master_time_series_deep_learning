@@ -10,10 +10,10 @@ cv_params = {
     },
 
     'mg': {
-        "window": 6000,
-        "horizon": 1000,
+        "window": 6500,
+        "horizon": 500,
         "fixed": False,
-        "by": 1000
+        "by": 500
     }
 }
 
