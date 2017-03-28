@@ -18,7 +18,7 @@ function do_operation {
 		for data in "mg" #'sp500'
 		do
 		    echo $1 $model $data
-		    pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
+		    nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
 		done
 	done
 }
