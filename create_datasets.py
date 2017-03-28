@@ -3,12 +3,12 @@ from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_retur
 
 
 def sp500_data_set():
-    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', '2017-03-23', usecols=['Close'])
+    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', '2017-03-27', usecols=['Close'])
     sp500_log_ret = get_log_return(sp500['Close'])
 
     # split into train and test sets
-    train = sp500_log_ret[:'2016-03-23']
-    test = sp500_log_ret['2016-03-23':]
+    train = sp500_log_ret[:'2016-03-27']
+    test = sp500_log_ret['2016-03-27':]
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
     look_back = 15
