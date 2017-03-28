@@ -28,7 +28,7 @@ def create_opt_inputs():
                     "method": {
                         "class": "cmaes",
                         "params": {
-                            "pop_size": 4,
+                            "pop_size": 10,
                             "max_iter": 1
                         }
                     },
