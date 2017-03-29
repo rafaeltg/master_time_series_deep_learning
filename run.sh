@@ -6,7 +6,7 @@ function update {
 }
 
 function make_inputs {
-    rm -rf data inputs models results
+    rm -rf data inputs models
     mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
 
     python3.5 create_datasets.py &
@@ -16,9 +16,9 @@ function make_inputs {
 }
 
 function do_operation {
-	for model in "lstm" #'sdae' 'sae' 'mlp'
+	for model in "lstm" #"sdae" "sae" "mlp"
 	do
-		for data in "mg" #'sp500'
+		for data in "mg" #"sp500"
 		do
 		    echo $1 $model $data
 		    sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
@@ -48,3 +48,6 @@ do_operation "predict" "pred"
 do_operation "evaluate" "eval"
 
 tar -zcf results.tar.gz results/
+
+
+sudo shutdown -h now
