@@ -28,8 +28,8 @@ def create_opt_inputs():
                     "method": {
                         "class": "cmaes",
                         "params": {
-                            "pop_size": 10,
-                            "max_iter": 1
+                            "pop_size": 16,
+                            "max_iter": 2
                         }
                     },
 
@@ -40,7 +40,7 @@ def create_opt_inputs():
                         }
                     },
 
-                    "max_threads": 4
+                    "max_threads": 16
                 },
 
                 'data_set': {

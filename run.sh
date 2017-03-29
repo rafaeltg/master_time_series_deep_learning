@@ -27,13 +27,13 @@ function do_operation {
 do_operation "optimize" "opt"
 
 # CV
-do_operation 'validate' 'cv'
+do_operation "cv" "cv"
 
 # PREDS
-do_operation 'predict' 'pred'
+do_operation "predict" "pred"
 
 # SCORES
-do_operation 'evaluate' 'eval'
+do_operation "evaluate" "eval"
 
 
 tar -zcf results.tar.gz results/
