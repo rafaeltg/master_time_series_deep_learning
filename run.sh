@@ -9,7 +9,7 @@ mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
 
 #python3.5 create_datasets.py &
 #python3.5 create_models.py
-#python3.5 create_inputs.py
+python3.5 create_inputs.py
 #wait
 
 function do_operation {
