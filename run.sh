@@ -1,16 +1,19 @@
 #!/bin/bash
 
-if [ "$1" == "-u" ]; then
+function update {
   cd ../Deep-Learning-Algorithms && git up && python3.5 setup.py install --force -O2;
   cd ../master_time_series_deep_learning;
-fi
+}
 
-mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
+function make_inputs {
+    rm -rf data inputs models results
+    mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
 
-#python3.5 create_datasets.py &
-#python3.5 create_models.py
-python3.5 create_inputs.py
-#wait
+    python3.5 create_datasets.py &
+    python3.5 create_models.py
+    python3.5 create_inputs.py
+    wait
+}
 
 function do_operation {
 	for model in "lstm" #'sdae' 'sae' 'mlp'
@@ -23,6 +26,15 @@ function do_operation {
 	done
 }
 
+
+while getopts 'ui' flag; do
+  case "${flag}" in
+    u) update ;;
+    i) make_inputs ;;
+    *) error "Unexpected option ${flag}" ;;
+  esac
+done
+
 # OPTIMIZATION
 do_operation "optimize" "opt"
 
@@ -34,6 +46,5 @@ do_operation "predict" "pred"
 
 # SCORES
 do_operation "evaluate" "eval"
-
 
 tar -zcf results.tar.gz results/
