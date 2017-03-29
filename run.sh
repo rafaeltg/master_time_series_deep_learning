@@ -4,7 +4,6 @@ function update {
     cd ../Deep-Learning-Algorithms
     git up
     pip3 install -r requirements.txt -U
-    pip install -r requirements.txt -U
     python3.5 setup.py install --force -O2
     cd ../master_time_series_deep_learning
 }
