@@ -40,7 +40,7 @@ def create_opt_inputs():
                         }
                     },
 
-                    "max_threads": 16
+                    "max_threads": 8
                 },
 
                 'data_set': {
