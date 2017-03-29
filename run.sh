@@ -1,8 +1,12 @@
 #!/bin/bash
 
 function update {
-  cd ../Deep-Learning-Algorithms && git up && python3.5 setup.py install --force -O2;
-  cd ../master_time_series_deep_learning;
+    cd ../Deep-Learning-Algorithms
+    git up
+    pip3 install -r requirements.txt -U
+    pip install -r requirements.txt -U
+    python3.5 setup.py install --force -O2
+    cd ../master_time_series_deep_learning
 }
 
 function make_inputs {
@@ -18,7 +22,7 @@ function make_inputs {
 function do_operation {
 	for model in "lstm" #"sdae" "sae" "mlp"
 	do
-		for data in "mg" #"sp500"
+		for data in "sp500" "mg"
 		do
 		    echo $1 $model $data
 		    sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
