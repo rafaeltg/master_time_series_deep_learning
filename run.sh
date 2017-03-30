@@ -24,7 +24,12 @@ function do_operation {
 		for data in "sp500" "mg"
 		do
 		    echo $1 $model $data
-		    sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
+		    if [ $3 = true ]; then
+		        sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/ &
+		    else
+		        sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
+		    fi
+
 		done
 	done
 }
@@ -39,18 +44,19 @@ while getopts 'ui' flag; do
 done
 
 # OPTIMIZATION
-do_operation "optimize" "opt" 0
+do_operation "optimize" "opt" false
 
 # CV
-do_operation "cv" "cv" 0
+do_operation "cv" "cv" false
 
 # PREDS
-do_operation "predict" "pred" 1
+do_operation "predict" "pred" true
 
 # SCORES
-do_operation "evaluate" "eval" 1
+do_operation "evaluate" "eval" true
+
+wait
 
 tar -zcf results.tar.gz results/
-
 
 sudo shutdown -h now

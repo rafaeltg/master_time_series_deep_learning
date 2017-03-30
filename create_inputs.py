@@ -64,7 +64,7 @@ def create_cv_inputs():
                 "cv": {
                     "method": "time_series",
                     "params": cv_params[d],
-                    "max_threads": 8
+                    "max_threads": 4
                 },
 
                 'data_set': {

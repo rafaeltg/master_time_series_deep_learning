@@ -1,14 +1,18 @@
+import time
 import numpy as np
+from datetime import datetime, timedelta
 from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset
 
 
 def sp500_data_set():
-    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', '2017-03-30', usecols=['Close'])
+    today = time.strftime("%Y-%m-%d")
+    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', today, usecols=['Close'])
     sp500_log_ret = get_log_return(sp500['Close'])
 
     # split into train and test sets
-    train = sp500_log_ret[:'2016-03-30']
-    test = sp500_log_ret['2016-03-30':]
+    test_start = (datetime.now() + timedelta(days=-365)).strftime("%Y-%m-%d")
+    train = sp500_log_ret[:test_start]
+    test = sp500_log_ret[test_start:]
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
     look_back = 15
@@ -23,7 +27,6 @@ def sp500_data_set():
 
 
 def mg_data_set():
-
     look_back = 10
     look_ahead = 1
 
