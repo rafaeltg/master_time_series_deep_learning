@@ -39,16 +39,16 @@ while getopts 'ui' flag; do
 done
 
 # OPTIMIZATION
-do_operation "optimize" "opt"
+do_operation "optimize" "opt" 0
 
 # CV
-do_operation "cv" "cv"
+do_operation "cv" "cv" 0
 
 # PREDS
-do_operation "predict" "pred"
+do_operation "predict" "pred" 1
 
 # SCORES
-do_operation "evaluate" "eval"
+do_operation "evaluate" "eval" 1
 
 tar -zcf results.tar.gz results/
 
