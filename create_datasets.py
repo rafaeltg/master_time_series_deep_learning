@@ -30,11 +30,11 @@ def mg_data_set():
     look_back = 10
     look_ahead = 1
 
-    mg = mackey_glass(sample_len=8020, seed=42)
+    mg = mackey_glass(sample_len=6020, seed=42)
 
     # split into train and test sets
-    train = mg[:(7500+look_back)]
-    test = mg[(7500+look_back):]
+    train = mg[:(5500+look_back)]
+    test = mg[(5500+look_back):]
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
     x_train, y_train = create_dataset(train, look_back, look_ahead)
