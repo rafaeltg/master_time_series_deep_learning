@@ -53,7 +53,7 @@ do_operation "cv" "cv" false
 do_operation "predict" "pred" true
 
 # SCORES
-do_operation "evaluate" "eval" true
+do_operation "eval" "eval" true
 
 wait
 
