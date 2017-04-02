@@ -21,7 +21,7 @@ function make_inputs {
 function do_operation {
 	for model in "lstm" #"sdae" "sae" "mlp"
 	do
-		for data in "sp500" "mg"
+		for data in "mg" #"sp500"
 		do
 		    echo $1 $model $data
 		    if [ $3 = true ]; then
@@ -44,10 +44,10 @@ while getopts 'ui' flag; do
 done
 
 # OPTIMIZATION
-do_operation "optimize" "opt" false
+#do_operation "optimize" "opt" false
 
 # CV
-do_operation "cv" "cv" false
+do_operation "cv" "cv" true
 
 # PREDS
 do_operation "predict" "pred" true
@@ -57,6 +57,6 @@ do_operation "eval" "eval" true
 
 wait
 
-tar -zcf results.tar.gz results/
+#tar -zcf results.tar.gz results/
 
-sudo shutdown -h now
+#sudo shutdown -h now
