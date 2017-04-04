@@ -1,5 +1,7 @@
 #!/bin/bash
 
+curr_dir=`pwd`
+
 function update {
     cd ../Deep-Learning-Algorithms
     git up
@@ -19,15 +21,17 @@ function make_inputs {
 }
 
 function do_operation {
-	for model in "lstm" "sdae" "sae" "mlp"
+	for model in "sdae" "sae" "mlp" "lstm"
 	do
-		for data in "mg" "sp500"
+		for data in "sp500" "mg"
 		do
-		    echo $1 $model $data
+		    in="$curr_dir"/inputs/"$model"_"$data"_"$2".json
+		    out="$curr_dir"/results/"$2"
+		    echo $1 $2 $3 $in $out
 		    if [ $3 = true ]; then
-		        sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/ &
+		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out" &
 		    else
-		        sudo nice -n -20 pydl $1 -c inputs/"$model"_"$data"_"$2".json -o results/$2/
+		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out"
 		    fi
 
 		done
