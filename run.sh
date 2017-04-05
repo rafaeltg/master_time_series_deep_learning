@@ -18,6 +18,8 @@ function make_inputs {
     python3.5 create_models.py
     python3.5 create_inputs.py
     wait
+
+    sudo chown -R gnzlz_rt:gnzlz_rt results
 }
 
 function do_operation {
@@ -62,6 +64,6 @@ do_operation "eval" "eval" true
 
 wait
 
-tar -zcf results.tar.gz results/
+#tar -zcf results.tar.gz results/
 
-sudo shutdown -h now
+#sudo shutdown -h now
