@@ -3,7 +3,7 @@ from pydl.models.utils import save_json
 
 
 model_params = {
-    'num_epochs': hp_int(100, 500),
+    'num_epochs': hp_int(50, 100),
     'batch_size': hp_int(32, 512),
     'opt': hp_choice(['rmsprop', 'adagrad', 'adadelta', 'adam']),
     'learning_rate': hp_float(0.0001, 0.01)

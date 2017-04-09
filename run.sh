@@ -19,11 +19,12 @@ function make_inputs {
     python3.5 create_inputs.py
     wait
 
-    sudo chown -R gnzlz_rt:gnzlz_rt results
+    user=`whoami`
+    sudo chown -R $user:$user results
 }
 
 function do_operation {
-	for model in "sdae" "sae" "mlp" #"lstm"
+	for model in "sdae" "sae" #"mlp" "lstm"
 	do
 		for data in "sp500" #"mg"
 		do
@@ -31,9 +32,9 @@ function do_operation {
 		    out="$curr_dir"/results/"$2"
 		    echo $1 $2 $3 $in $out
 		    if [ $3 = true ]; then
-		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out" &
+		        sudo nice -n -19 pydl "$1" -c "$in" -o "$out" &
 		    else
-		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out"
+		        sudo nice -n -19 pydl "$1" -c "$in" -o "$out"
 		    fi
 
 		done
@@ -64,6 +65,6 @@ do_operation "eval" "eval" true
 
 wait
 
-#tar -zcf results.tar.gz results/
+tar -zcf results.tar.gz results/
 
 #sudo shutdown -h now
