@@ -67,4 +67,4 @@ wait
 
 tar -zcf results.tar.gz results/
 
-#sudo shutdown -h now
+sudo shutdown -h now
