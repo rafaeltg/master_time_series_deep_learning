@@ -3,7 +3,7 @@ from pydl.models.utils import save_json
 
 
 model_params = {
-    'nb_epochs': hp_int(100, 300),
+    'nb_epochs': hp_int(100, 500),
     'batch_size': hp_int(32, 512),
     'opt': hp_choice(['rmsprop', 'adagrad', 'adadelta', 'adam']),
     'learning_rate': hp_float(0.0001, 0.01)
@@ -22,6 +22,9 @@ def supervised_model_params(name, layers, p={}):
         layers=layers,
         activation=hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
         dropout=[hp_float(0, 0.5)] * len(layers),
+        early_stopping=hp_choice([True, False]),
+        patient=hp_int(1, 20),
+        min_delta=hp_float(1e-5, 1e-4)
     ))
     return p
 
