@@ -111,8 +111,8 @@ def create_eval_inputs():
 
                 'scoring': ['rmse', 'mse', 'mape', 'r2'],
 
-                'errors_scoring': {
-                    "nlags": 20
+                'errors_acf': {
+                    "nlags": 30
                 }
             }
 
