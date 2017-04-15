@@ -4,50 +4,50 @@ import numpy as np
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from datetime import datetime, timedelta
-from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset, load_csv, acf, test_stationarity, decompose
-import matplotlib.pyplot as plt
+from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset, load_csv
 
 
 def sp500_data_set():
     today = time.strftime("%Y-%m-%d")
-    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', today, usecols=['Close'])
+    sp500 = get_stock_historical_data('^GSPC', '2015-01-01', today, usecols=['Close'])
     sp500_log_ret = get_log_return(sp500['Close'])
+
+    # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
+    look_back = 15
+    look_ahead = 1
+    x, y = create_dataset(sp500_log_ret, look_back, look_ahead)
+
+    x = pd.DataFrame(data=x, index=sp500_log_ret.index.get_values()[(look_back-1):(-look_ahead)])
+    y = pd.DataFrame(data=y, index=sp500_log_ret.index.get_values()[(look_back-1):(-look_ahead)])
 
     # split into train and test sets
     test_start = (datetime.now() + timedelta(days=-365)).strftime("%Y-%m-%d")
-    train = sp500_log_ret[:test_start]
-    test = sp500_log_ret[test_start:]
+    x_train, y_train = x[:test_start], y[:test_start]
+    x_test, y_test = x[test_start:], y[test_start:]
 
-    # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
-    look_back = 15
-    look_ahead = 1
-    x_train, y_train = create_dataset(train, look_back, look_ahead)
-    x_test, y_test = create_dataset(test, look_back, look_ahead)
-
-    np.save('data/sp500_train_x.npy', x_train)
-    np.save('data/sp500_train_y.npy', y_train)
-    np.save('data/sp500_test_x.npy', x_test)
-    np.save('data/sp500_test_y.npy', y_test)
+    np.save('data/sp500_train_x.npy', x_train.values)
+    np.save('data/sp500_train_y.npy', y_train.values)
+    np.save('data/sp500_test_x.npy', x_test.values)
+    np.save('data/sp500_test_y.npy', y_test.values)
 
 
 def mg_data_set():
     look_back = 10
     look_ahead = 1
 
-    mg = mackey_glass(sample_len=6020, seed=42)
-
-    # split into train and test sets
-    train = mg[:(5500+look_back)]
-    test = mg[(5500+look_back):]
+    mg = mackey_glass(sample_len=6000 + look_back, seed=42)
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
-    x_train, y_train = create_dataset(train, look_back, look_ahead)
-    x_test, y_test = create_dataset(test, look_back, look_ahead)
+    x, y = create_dataset(mg, look_back, look_ahead)
 
-    np.save('data/mg_train_x.npy', x_train)
-    np.save('data/mg_train_y.npy', y_train)
-    np.save('data/mg_test_x.npy', x_test)
-    np.save('data/mg_test_y.npy', y_test)
+    # split into train and test sets
+    x_train, y_train = x[:5500], y[:5500]
+    x_test, y_test = x[5500:], y[5500:]
+
+    np.save('data/mg_train_x.npy', x_train.values)
+    np.save('data/mg_train_y.npy', y_train.values)
+    np.save('data/mg_test_x.npy', x_test.values)
+    np.save('data/mg_test_y.npy', y_test.values)
 
 
 def energy_data_set():
@@ -57,36 +57,37 @@ def energy_data_set():
                     index_col='Date',
                     dtype={'Date': datetime, 'DryBulb': np.float64, 'DewPnt': np.float64, 'Demand': np.float64})
 
-    # Calculate Date-time features
+    # Add Date-time features
     dt_feats = get_date_time_features(data.index.get_values())
-
     data = data.assign(**dt_feats)
 
-    #print(data.head(24))
-    #print(data.tail(24))
+    # Add temperature features
+    temp_feats = get_temperature_features(data.DryBulb, data.DewPnt)
+    data.assign(**temp_feats)
+    data.drop(['DryBulb', 'DewPnt'], axis=1, inplace=True)
 
-    #acf(data['Demand'], nlags=48, plot=True)
-    #pacf(data['Demand'], nlags=48, plot=True)
+    # Transform demand data
+    data.Demand = get_log_return(data['Demand'], periods=1)
 
-    #test_stationarity(data['Demand'])
+    # Add lagged-values
+    data = data.assign(Demand_24=data.Demand.shift(24),
+                       Demand_168=data.Demand.shift(168))
 
-    decompose(data['Demand'].values[:1000], plot=True)
+    # Add Y variable
+    data = data.assign(Y=data.Demand.shift(-1))
 
-    log_ret_1 = get_log_return(data['Demand'], periods=1)
-    #acf(log_ret_1['Demand'], nlags=48, plot=True)
-    #test_stationarity(log_ret_1['Demand'])
+    data.dropna(inplace=True)
 
-    log_ret_24 = get_log_return(data['Demand'], periods=24)
-    acf(log_ret_24['Demand'], nlags=48, plot=True)
-    test_stationarity(log_ret_24['Demand'])
+    # split into train and test sets
+    x = data[data.columns.difference(['Y'])]
+    test_start = pd.to_datetime('2016-09-01')
+    x_train, y_train = x[:test_start], data.Y[:test_start]
+    x_test, y_test = x[test_start:], data.Y[test_start:]
 
-    plt.subplot(311)
-    plt.plot(data['Demand'].head(800), label='Original')
-    plt.subplot(312)
-    plt.plot(log_ret_1.values[:799], label='log_ret_1')
-    plt.subplot(313)
-    plt.plot(log_ret_24.values[:(800-24)], label='log_ret_24')
-    plt.show(block=True)
+    np.save('data/energy_train_x.npy', x_train.values)
+    np.save('data/energy_train_y.npy', y_train.values)
+    np.save('data/energy_test_x.npy', x_test.values)
+    np.save('data/energy_test_y.npy', y_test.values)
 
 
 def get_date_time_features(dates):
@@ -128,6 +129,16 @@ def get_date_time_features(dates):
         'Month': month,
         'Week': week,
         'Holiday': holiday
+    }
+
+
+def get_temperature_features(dry_bulb, dew_pnt):
+    dry_bulb_ma_24 = dry_bulb.rolling(window=24).mean()
+    dew_pnt_ma_24 = dew_pnt.rolling(window=24).mean()
+
+    return {
+        'DryBuld_MA_24': dry_bulb_ma_24,
+        'DewPnt_MA_24': dew_pnt_ma_24
     }
 
 
