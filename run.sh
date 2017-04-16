@@ -11,12 +11,12 @@ function update {
 }
 
 function make_inputs {
-    rm -rf data inputs models
+    rm -rf data inputs models results
     mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
 
-    python3.5 create_datasets.py &
-    python3.5 create_models.py
-    python3.5 create_inputs.py
+    chmod +x create_datasets.py && ./create_datasets.py &
+    chmod +x create_models.py && ./create_models.py
+    chmod +x create_inputs.py && ./create_inputs.py
     wait
 
     user=`whoami`
@@ -26,7 +26,7 @@ function make_inputs {
 function do_operation {
 	for model in "mlp" "sae" "sdae" #"lstm"
 	do
-		for data in "sp500" "mg"
+		for data in "sp500" "mg" "energy"
 		do
 		    in="$curr_dir"/inputs/"$model"_"$data"_"$2".json
 		    out="$curr_dir"/results/"$2"
@@ -65,6 +65,6 @@ do_operation "eval" "eval" true
 
 wait
 
-tar -zcf results.tar.gz results/
+tar -zcf ../results.tar.gz results/
 
 sudo shutdown -h now

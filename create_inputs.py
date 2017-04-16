@@ -1,5 +1,9 @@
+#!/usr/bin/env python3.5
+
 from pydl.models.utils import save_json, load_json
 
+
+models = ['lstm', 'sae', 'sdae', 'mlp']
 
 cv_params = {
     'sp500': {
@@ -14,13 +18,20 @@ cv_params = {
         "horizon": 500,
         "fixed": False,
         "by": 500
+    },
+
+    'energy': {
+        "window": 7247,
+        "horizon": 1440,
+        "fixed": False,
+        "by": 1440
     }
 }
 
 
 def create_opt_inputs():
-    for m in ['lstm', 'sae', 'sdae', 'mlp']:
-        for d in ['sp500', 'mg']:
+    for m in models:
+        for d in cv_params.keys():
             inp = {
                 "hp_space": load_json('models/%s_%s.json' % (m, d)),
 
@@ -56,8 +67,8 @@ def create_opt_inputs():
 
 
 def create_cv_inputs():
-    for m in ['lstm', 'sae', 'sdae', 'mlp']:
-        for d in ['sp500', 'mg']:
+    for m in models:
+        for d in cv_params.keys():
             inp = {
                 "model": "results/opt/%s_%s.json" % (m, d),
 
@@ -80,8 +91,8 @@ def create_cv_inputs():
 
 
 def create_pred_inputs():
-    for m in ['lstm', 'sae', 'sdae', 'mlp']:
-        for d in ['sp500', 'mg']:
+    for m in models:
+        for d in cv_params.keys():
             inp = {
                 "model": "results/opt/%s_%s.json" % (m, d),
 
@@ -95,8 +106,8 @@ def create_pred_inputs():
 
 
 def create_eval_inputs():
-    for m in ['lstm', 'sae', 'sdae', 'mlp']:
-        for d in ['sp500', 'mg']:
+    for m in models:
+        for d in cv_params.keys():
             inp = {
                 "model": "results/opt/%s_%s.json" % (m, d),
 

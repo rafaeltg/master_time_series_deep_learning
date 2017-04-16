@@ -1,10 +1,14 @@
+#!/usr/bin/env python3.5
+
 from pydl.hyperopt import *
 from pydl.models.utils import save_json
 
 
+data_sets = ["sp500", "mg", "energy"]
+
 model_params = {
-    'nb_epochs': hp_int(100, 500),
-    'batch_size': hp_int(32, 512),
+    'nb_epochs': hp_int(150, 700),
+    'batch_size': hp_int(32, 1024),
     'opt': hp_choice(['rmsprop', 'adagrad', 'adadelta', 'adam']),
     'learning_rate': hp_float(0.0001, 0.01)
 }
@@ -41,7 +45,7 @@ def create_lstm():
             },
         )
 
-    for d in ['sp500', 'mg']:
+    for d in data_sets:
         name = 'lstm_%s' % d
         space = hp_space({
             'model': {
@@ -68,7 +72,7 @@ def create_sae():
         })
     }
 
-    for d in ['sp500', 'mg']:
+    for d in data_sets:
         name = 'sae_%s' % d
         space = hp_space({
             'model': {
@@ -97,7 +101,7 @@ def create_sdae():
         })
     }
 
-    for d in ['sp500', 'mg']:
+    for d in data_sets:
         name = 'sdae_%s' % d
         space = hp_space({
             'model': {
@@ -125,7 +129,7 @@ def create_mlp():
             }
         )
 
-    for d in ['sp500', 'mg']:
+    for d in data_sets:
         name = 'mlp_%s' % d
         space = hp_space({
             'model': {

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.5
+
 import time
 import calendar
 import numpy as np
@@ -9,11 +11,11 @@ from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_retur
 
 def sp500_data_set():
     today = time.strftime("%Y-%m-%d")
-    sp500 = get_stock_historical_data('^GSPC', '2015-01-01', today, usecols=['Close'])
+    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', today, usecols=['Close'])
     sp500_log_ret = get_log_return(sp500['Close'])
 
     # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
-    look_back = 15
+    look_back = 20
     look_ahead = 1
     x, y = create_dataset(sp500_log_ret, look_back, look_ahead)
 
@@ -24,6 +26,8 @@ def sp500_data_set():
     test_start = (datetime.now() + timedelta(days=-365)).strftime("%Y-%m-%d")
     x_train, y_train = x[:test_start], y[:test_start]
     x_test, y_test = x[test_start:], y[test_start:]
+
+    print(len(x_train), len(x_test))
 
     np.save('data/sp500_train_x.npy', x_train.values)
     np.save('data/sp500_train_y.npy', y_train.values)
@@ -44,14 +48,13 @@ def mg_data_set():
     x_train, y_train = x[:5500], y[:5500]
     x_test, y_test = x[5500:], y[5500:]
 
-    np.save('data/mg_train_x.npy', x_train.values)
-    np.save('data/mg_train_y.npy', y_train.values)
-    np.save('data/mg_test_x.npy', x_test.values)
-    np.save('data/mg_test_y.npy', y_test.values)
+    np.save('data/mg_train_x.npy', x_train)
+    np.save('data/mg_train_y.npy', y_train)
+    np.save('data/mg_test_x.npy', x_test)
+    np.save('data/mg_test_y.npy', y_test)
 
 
 def energy_data_set():
-
     data = load_csv(filename='data_sets/2015_2016_iso_ne_ca_hourly.csv',
                     has_header=True,
                     index_col='Date',
@@ -63,7 +66,7 @@ def energy_data_set():
 
     # Add temperature features
     temp_feats = get_temperature_features(data.DryBulb, data.DewPnt)
-    data.assign(**temp_feats)
+    data = data.assign(**temp_feats)
     data.drop(['DryBulb', 'DewPnt'], axis=1, inplace=True)
 
     # Transform demand data
@@ -76,6 +79,7 @@ def energy_data_set():
     # Add Y variable
     data = data.assign(Y=data.Demand.shift(-1))
 
+    # Remove rows with NA values
     data.dropna(inplace=True)
 
     # split into train and test sets
@@ -96,18 +100,16 @@ def get_date_time_features(dates):
     
     hour: hour of the day. (h - 1) / 23
     day: day of the month. (d - 1) / (days in month - 1)
-    week_day: day of the week. (week day - 1) / 6 (Monday = 1 and Sunday = 7)
     month: month of the year. (m - 1) / 11
     week: week of the year. (w - 1) / (weeks in year - 1)
-    holiday: whether or not the date is a US federal holiday
+    weekend_holiday: whether or not the date is a US federal holiday or a weekend day
     """
 
     hour = []
     day = []
-    week_day = []
     month = []
     week = []
-    holiday = []
+    weekend_holiday = []
 
     start_date = pd.to_datetime(str(dates[0])).strftime('%Y-%m-%d')
     end_date = pd.to_datetime(str(dates[-1])).strftime('%Y-%m-%d')
@@ -117,32 +119,49 @@ def get_date_time_features(dates):
         dt = pd.to_datetime(str(d)).replace(tzinfo=None).to_pydatetime()
         hour.append(dt.hour/23)
         day.append((dt.day - 1) / (calendar.monthrange(dt.year, dt.month)[1] - 1))
-        week_day.append((dt.isocalendar()[2]-1)/6)
         month.append((dt.month - 1) / 11)
         week.append((dt.isocalendar()[1]-1) / (datetime(dt.year, 12, 28).isocalendar()[1] - 1))
-        holiday.append(int(dt in us_holidays))
+        weekend_holiday.append(int((dt in us_holidays) or (dt.isocalendar()[2] in [5, 6, 7])))
 
     return {
         'Hour': hour,
         'Day': day,
-        'WeekDay': week_day,
         'Month': month,
         'Week': week,
-        'Holiday': holiday
+        'Weekend_Holiday': weekend_holiday
     }
 
 
 def get_temperature_features(dry_bulb, dew_pnt):
-    dry_bulb_ma_24 = dry_bulb.rolling(window=24).mean()
-    dew_pnt_ma_24 = dew_pnt.rolling(window=24).mean()
+    dry_bulb_ema_24 = dry_bulb.ewm(span=24).mean().replace(0, 1e-5)
+    rel_dry_bulb_24 = dry_bulb / dry_bulb_ema_24.shift(1)
+    dry_bulb_ma_168 = dry_bulb.rolling(window=168).mean().replace(0, 1e-5)
+    rel_dry_bulb_168 = dry_bulb / dry_bulb_ma_168.shift(1)
+
+    dew_pnt_ema_24 = dew_pnt.ewm(span=24).mean().replace(0, 1e-5)
+    rel_dew_pnt_24 = dew_pnt / dew_pnt_ema_24.shift(1)
+    dew_pnt_ma_168 = dew_pnt.rolling(window=168).mean().replace(0, 1e-5)
+    rel_dew_pnt_168 = dew_pnt / dew_pnt_ma_168.shift(1)
 
     return {
-        'DryBuld_MA_24': dry_bulb_ma_24,
-        'DewPnt_MA_24': dew_pnt_ma_24
+        'DryBulb_EMA_24': remove_outliers(dry_bulb_ema_24),
+        'RelativeDryBulb_24': remove_outliers(rel_dry_bulb_24),
+        'DryBulb_MA_168': remove_outliers(dry_bulb_ma_168),
+        'RelativeDryBulb_168': remove_outliers(rel_dry_bulb_168),
+        'DewPnt_EMA_24': remove_outliers(dew_pnt_ema_24),
+        'RelativeDewPnt_24': remove_outliers(rel_dew_pnt_24),
+        'DewPnt_MA_168': remove_outliers(dew_pnt_ma_168),
+        'RelativeDewPnt_168': remove_outliers(rel_dew_pnt_168)
     }
 
 
+def remove_outliers(x):
+    m = x.mean()
+    std = x.std()
+    return x.clip(m-2.5*std, m+2.5*std)
+
+
 if __name__ == '__main__':
-    #sp500_data_set()
-    #mg_data_set()
+    sp500_data_set()
+    mg_data_set()
     energy_data_set()
