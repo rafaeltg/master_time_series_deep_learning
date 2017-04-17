@@ -27,8 +27,6 @@ def sp500_data_set():
     x_train, y_train = x[:test_start], y[:test_start]
     x_test, y_test = x[test_start:], y[test_start:]
 
-    print(len(x_train), len(x_test))
-
     np.save('data/sp500_train_x.npy', x_train.values)
     np.save('data/sp500_train_y.npy', y_train.values)
     np.save('data/sp500_test_x.npy', x_test.values)
