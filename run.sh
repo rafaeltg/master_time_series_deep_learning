@@ -2,29 +2,44 @@
 
 curr_dir=`pwd`
 
-function update {
+
+function update_pydl {
     cd ../Deep-Learning-Algorithms
     git up
     pip3 install -r requirements.txt -U
-    python3.5 setup.py install --force -O2
-    cd ../master_time_series_deep_learning
+    sudo python3.5 setup.py install --force -O2
+}
+
+function make_dirs {
+    rm -rf data inputs models results
+    mkdir -p {data,inputs,models,results/{opt,cv,pred,eval,figs}}
 }
 
 function make_inputs {
-    rm -rf data inputs models results
-    mkdir -p {data,inputs,models,results/{opt,cv,pred,eval,figs}}
+    make_dirs
 
-    chmod +x create_datasets.py && ./create_datasets.py &
-    chmod +x create_models.py && ./create_models.py
-    chmod +x create_inputs.py && ./create_inputs.py
+    ./create_datasets.py &
+    ./create_models.py
+    ./create_inputs.py
     wait
 
     user=`whoami`
     sudo chown -R $user:$user results
 }
 
+function install {
+    git up
+    chmod +x create_datasets.py create_models.py create_inputs.py create_outputs.py
+
+    update_pydl
+
+    cd ../master_time_series_deep_learning
+
+    make_dirs
+}
+
 function do_operation {
-	for model in "mlp" "sae" "sdae" #"lstm"
+	for model in "mlp" "sae" "sdae" "lstm"
 	do
 		for data in "sp500" "mg" "energy"
 		do
@@ -41,30 +56,54 @@ function do_operation {
 }
 
 
-while getopts 'ui' flag; do
+OPT=false
+CV=false
+PRED=false
+EVAL=false
+OUT=false
+
+while getopts 'uimocpeax' flag; do
   case "${flag}" in
-    u) update ;;
-    i) make_inputs ;;
+    u) update_pydl ;;
+    i) install ;;
+    m) make_inputs ;;
+    o) OPT=true ;;
+    c) CV=true ;;
+    p) PRED=true ;;
+    e) EVAL=true ;;
+    a) OPT=true; CV=true; PRED=true; EVAL=true; OUT=true ;;
+    x) ./create_outputs.py ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
 
 
 # OPTIMIZATION
-do_operation "optimize" "opt" false
+if [ $OPT = true ]; then
+    do_operation "optimize" "opt" false
+fi
 
 # CV
-do_operation "cv" "cv" true
+if [ $CV = true ]; then
+    do_operation "cv" "cv" true
+fi
 
 # PREDS
-do_operation "predict" "pred" true
+if [ $PRED = true ]; then
+    do_operation "predict" "pred" true
+fi
 
 # SCORES
-do_operation "eval" "eval" true
+if [ $EVAL = true ]; then
+    do_operation "eval" "eval" true
+fi
 
 wait
 
-#chmod +x create_outputs.py && ./create_outputs.py
+# OUTPUTS
+if [[ $OUT = true ]] && [[ $PRED = true ]] && [[ $EVAL = true ]]; then
+    ./create_outputs.py
+fi
 
 tar -zcf ../results.tar.gz results/
 

@@ -38,20 +38,20 @@ def mg_data_set():
     look_back = 10
     look_ahead = 1
 
-    mg = mackey_glass(sample_len=6000 + look_back, seed=42)
+    mg = mackey_glass(sample_len=7000 + look_back, seed=42)
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
     x, y = create_dataset(mg, look_back, look_ahead)
 
     # split into train and test sets
-    x_train, y_train = x[:5500], y[:5500]
-    x_test, y_test = x[5500:], y[5500:]
+    x_train, y_train = x[:6500], y[:6500]
+    x_test, y_test = x[6500:], y[6500:]
 
     np.save('data/mg_train_x.npy', x_train)
     np.save('data/mg_train_y.npy', y_train)
     np.save('data/mg_test_x.npy', x_test)
     np.save('data/mg_test_y.npy', y_test)
-    np.save('data/mg_test_y_index.npy', xrangey_test.index.get_values())
+    np.save('data/mg_test_y_index.npy', range(len(x_test)))
 
 
 def energy_data_set():
