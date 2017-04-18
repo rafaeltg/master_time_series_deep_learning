@@ -36,7 +36,6 @@ function do_operation {
 		    else
 		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out"
 		    fi
-
 		done
 	done
 }
@@ -65,7 +64,7 @@ do_operation "eval" "eval" true
 
 wait
 
-chmod +x create_outputs.py && ./create_outputs.py
+#chmod +x create_outputs.py && ./create_outputs.py
 
 tar -zcf ../results.tar.gz results/
 

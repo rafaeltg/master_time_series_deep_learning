@@ -26,8 +26,8 @@ def supervised_model_params(name, layers, p={}):
         layers=layers,
         activation=hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
         dropout=[hp_float(0, 0.5)] * len(layers),
-        early_stopping=hp_choice([True, False]),
-        patient=hp_int(1, 20),
+        early_stopping=True,
+        patient=hp_int(1, 40),
         min_delta=hp_float(1e-5, 1e-4)
     ))
     return p
