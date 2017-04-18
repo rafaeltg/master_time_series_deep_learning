@@ -107,4 +107,6 @@ fi
 
 tar -zcf ../results.tar.gz results/
 
-sudo shutdown -h now
+if [ $OPT = true ]; then
+    sudo shutdown -h now
+fi
