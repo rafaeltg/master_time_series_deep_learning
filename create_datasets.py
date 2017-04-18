@@ -31,6 +31,7 @@ def sp500_data_set():
     np.save('data/sp500_train_y.npy', y_train.values)
     np.save('data/sp500_test_x.npy', x_test.values)
     np.save('data/sp500_test_y.npy', y_test.values)
+    np.save('data/sp500_test_y_index.npy', y_test.index.get_values())
 
 
 def mg_data_set():
@@ -50,6 +51,7 @@ def mg_data_set():
     np.save('data/mg_train_y.npy', y_train)
     np.save('data/mg_test_x.npy', x_test)
     np.save('data/mg_test_y.npy', y_test)
+    np.save('data/mg_test_y_index.npy', xrangey_test.index.get_values())
 
 
 def energy_data_set():

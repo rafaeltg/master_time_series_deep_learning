@@ -12,7 +12,7 @@ function update {
 
 function make_inputs {
     rm -rf data inputs models results
-    mkdir -p {data,inputs,models,results/{opt,cv,pred,eval}}
+    mkdir -p {data,inputs,models,results/{opt,cv,pred,eval,figs}}
 
     chmod +x create_datasets.py && ./create_datasets.py &
     chmod +x create_models.py && ./create_models.py
@@ -64,6 +64,8 @@ do_operation "predict" "pred" true
 do_operation "eval" "eval" true
 
 wait
+
+chmod +x create_outputs.py && ./create_outputs.py
 
 tar -zcf ../results.tar.gz results/
 
