@@ -38,7 +38,7 @@ def get_forecast_results():
         idxs = pd.date_range(start=idxs[0], end=idxs[-1])
 
         for m in models:
-            preds = load_npy('results/pred/%s_%s_preds.npy' % (m, d))[:, 0]
+            preds = load_npy('results/predict/%s_%s_preds.npy' % (m, d))[:, 0]
 
             fig, ax = plt.subplots()
             ax.plot(idxs[range(0, len(actual))], actual, color='red', label='Actual')

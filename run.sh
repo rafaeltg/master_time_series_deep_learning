@@ -12,7 +12,7 @@ function update_pydl {
 
 function make_dirs {
     rm -rf data inputs models results
-    mkdir -p {data,inputs,models,results/{opt,cv,pred,eval,figs}}
+    mkdir -p {data,inputs,models,results/{optimize,fit,cv,predict,eval,figs}}
 }
 
 function make_inputs {
@@ -43,18 +43,24 @@ function do_operation {
 	do
 		for data in "sp500" "mg" "energy"
 		do
-		    in="$curr_dir"/inputs/"$model"_"$data"_"$2".json
-		    out="$curr_dir"/results/"$2"
-		    echo $1 $2 $3 $in $out
-		    if [ $3 = true ]; then
-		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out" &
+		    in="$curr_dir"/inputs/"$model"_"$data"_"$1".json
+		    out="$curr_dir"/results/"$1"
+		    printf "%s - %s - %s\n" $1 $in $out
+		    if [ $2 = true ]; then
+		        sudo nice -n -19 pydl "$1" -c "$in" -o "$out" &
 		    else
-		        sudo nice -n -18 pydl "$1" -c "$in" -o "$out"
+		        sudo nice -n -19 pydl "$1" -c "$in" -o "$out"
 		    fi
 		done
 	done
 }
 
+function do_op {
+    in="$curr_dir"/inputs/"$1"_"$2"_"$3".json
+	out="$curr_dir"/results/"$3"
+	printf "%s - %s - %s\n" $3 $in $out
+	sudo nice -n -19 pydl "$3" -c "$in" -o "$out"
+}
 
 OPT=false
 CV=false
@@ -78,35 +84,28 @@ while getopts 'uimocpeax' flag; do
 done
 
 
-# OPTIMIZATION
-if [ $OPT = true ]; then
-    do_operation "optimize" "opt" false
-fi
+for model in "mlp" "sae" "sdae" "lstm"
+do
+    printf "\n------\n"
 
-# CV
-if [ $CV = true ]; then
-    do_operation "cv" "cv" true
-fi
-
-# PREDS
-if [ $PRED = true ]; then
-    do_operation "predict" "pred" true
-fi
-
-# SCORES
-if [ $EVAL = true ]; then
-    do_operation "eval" "eval" true
-fi
-
-wait
+	for data in "sp500" "mg" "energy"
+	do
+	    do_op "$model" "$data" "optimize"
+	    do_op "$model" "$data" "cv" &
+	    do_op "$model" "$data" "fit"
+	    do_op "$model" "$data" "predict" &
+	    do_op "$model" "$data" "eval"
+	    wait
+	done
+done
 
 # OUTPUTS
-if [[ $OUT = true ]] && [[ $PRED = true ]] && [[ $EVAL = true ]]; then
-    ./create_outputs.py
-fi
+#if [[ $OUT = true ]] && [[ $PRED = true ]] && [[ $EVAL = true ]]; then
+#    ./create_outputs.py
+#fi
 
 tar -zcf ../results.tar.gz results/
 
-if [ $OPT = true ]; then
-    sudo shutdown -h now
-fi
+#if [ $OPT = true ]; then
+sudo shutdown -h now
+#fi

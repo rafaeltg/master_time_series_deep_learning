@@ -51,7 +51,7 @@ def create_opt_inputs():
                         }
                     },
 
-                    "max_threads": 12
+                    "max_threads": 24
                 },
 
                 'data_set': {
@@ -63,19 +63,38 @@ def create_opt_inputs():
                     }
                 }
             }
-            save_json(inp, 'inputs/%s_%s_opt.json' % (m, d))
+            save_json(inp, 'inputs/%s_%s_optimize.json' % (m, d))
+
+
+def create_fit_inputs():
+    for m in models:
+        for d in cv_params.keys():
+            inp = {
+                'model': "results/opt/%s_%s.json" % (m, d),
+
+                'data_set': {
+                    'train_x': {
+                        'path': "data/%s_train_x.npy" % d,
+                    },
+                    'train_y': {
+                        'path': "data/%s_train_y.npy" % d,
+                    }
+                }
+
+            }
+            save_json(inp, 'inputs/%s_%s_fit.json' % (m, d))
 
 
 def create_cv_inputs():
     for m in models:
         for d in cv_params.keys():
             inp = {
-                "model": "results/opt/%s_%s.json" % (m, d),
+                "model": "results/optimize/%s_%s.json" % (m, d),
 
                 "cv": {
                     "method": "time_series",
                     "params": cv_params[d],
-                    "max_threads": 1
+                    "max_threads": 5
                 },
 
                 'data_set': {
@@ -94,7 +113,7 @@ def create_pred_inputs():
     for m in models:
         for d in cv_params.keys():
             inp = {
-                "model": "results/opt/%s_%s.json" % (m, d),
+                "model": "results/fit/%s_%s.json" % (m, d),
 
                 'data_set': {
                     "data_x": {
@@ -102,14 +121,14 @@ def create_pred_inputs():
                     }
                 }
             }
-            save_json(inp, 'inputs/%s_%s_pred.json' % (m, d))
+            save_json(inp, 'inputs/%s_%s_predict.json' % (m, d))
 
 
 def create_eval_inputs():
     for m in models:
         for d in cv_params.keys():
             inp = {
-                "model": "results/opt/%s_%s.json" % (m, d),
+                "model": "results/fit/%s_%s.json" % (m, d),
 
                 'data_set': {
                     "data_x": {
