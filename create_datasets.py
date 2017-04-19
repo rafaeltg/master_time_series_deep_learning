@@ -92,6 +92,7 @@ def energy_data_set():
     np.save('data/energy_train_y.npy', y_train.values)
     np.save('data/energy_test_x.npy', x_test.values)
     np.save('data/energy_test_y.npy', y_test.values)
+    np.save('data/energy_test_y_index.npy', y_test.index.get_values())
 
 
 def get_date_time_features(dates):
