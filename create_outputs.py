@@ -2,11 +2,10 @@
 
 import math
 import pandas as pd
-import datetime as dt
-import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 from pydl.datasets import load_npy
+from pandas.tools.plotting import autocorrelation_plot
 
 
 """
@@ -19,7 +18,6 @@ from pydl.datasets import load_npy
         
     2. Errors
         2.1) box-plot of models
-        2.2) scatter
         2.2) White noise (errors acf)
     
     3. Input data sets
@@ -27,7 +25,7 @@ from pydl.datasets import load_npy
         3.2) Train and Test set properties (len, min, max, mean, std...)
 """
 
-models = ['sae', 'sdae', 'mlp']  #'lstm',
+models = ['sae', 'mlp']  #'lstm',
 data_sets = ['sp500'] # , 'mg', 'energy'
 
 
@@ -35,28 +33,41 @@ def get_forecast_results():
     for d in data_sets:
         actual = load_npy('data/%s_test_y.npy' % d)[:, 0]
         idxs = load_npy('data/%s_test_y_index.npy' % d)
-        idxs = pd.date_range(start=idxs[0], end=idxs[-1])
+        idxs = pd.to_datetime(idxs)
+
+        model_errors = []
 
         for m in models:
             preds = load_npy('results/predict/%s_%s_preds.npy' % (m, d))[:, 0]
 
+            plt.figure()
             fig, ax = plt.subplots()
-            ax.plot(idxs[range(0, len(actual))], actual, color='red', label='Actual')
-            ax.plot(idxs[range(0, len(preds))], preds, color='blue', label='Predicted')
-            plt.legend(loc='best')
-
-            # format the ticks
+            ax.plot(idxs, actual, color='red', label='Actual')
+            ax.plot(idxs, preds, color='blue', label='Predicted')
             ax.set_xlim(idxs[0], idxs[-1])
+            plt.legend(loc='best')
             fig.autofmt_xdate()
-
             plt.savefig(filename='results/figs/%s_%s_actual_preds.png' % (m, d))
 
             plt.figure()
-            plt.scatter(actual[:-1], preds)
+            plt.scatter(actual, preds)
             plt.ylabel('Actual')
             plt.xlabel('Predicted')
             plt.tight_layout()
             plt.savefig(filename='results/figs/%s_%s_preds_scatter.png' % (m, d))
+
+            plt.figure()
+            errs = actual - preds
+            errs_series = pd.Series(errs)
+            autocorrelation_plot(errs_series)
+            plt.savefig(filename='results/figs/%s_%s_errs_auto_corr.png' % (m, d))
+
+            model_errors.append(errs)
+
+        # Errors boxplot
+        plt.figure(1)
+        plt.boxplot(model_errors, labels=models)
+        plt.savefig(filename='results/figs/%s_errors_boxplot.png' % d)
 
 
 def _get_conf_intervals(errs):

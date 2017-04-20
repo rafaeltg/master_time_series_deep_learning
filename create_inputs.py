@@ -70,7 +70,7 @@ def create_fit_inputs():
     for m in models:
         for d in cv_params.keys():
             inp = {
-                'model': "results/opt/%s_%s.json" % (m, d),
+                'model': "results/optimize/%s_%s.json" % (m, d),
 
                 'data_set': {
                     'train_x': {
@@ -139,7 +139,7 @@ def create_eval_inputs():
                     }
                 },
 
-                'scoring': ['rmse', 'mse', 'mape', 'r2'],
+                'scoring': ['rmse', 'mse', 'mae', 'mape', 'r2'],
 
                 'errors_acf': {
                     "nlags": 30
@@ -154,3 +154,4 @@ if __name__ == '__main__':
     create_cv_inputs()
     create_pred_inputs()
     create_eval_inputs()
+    create_fit_inputs()
