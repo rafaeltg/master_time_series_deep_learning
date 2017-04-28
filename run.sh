@@ -86,10 +86,10 @@ done
 
 for model in "mlp" "sae" "sdae" "lstm"
 do
-    printf "\n------\n"
-
-	for data in "sp500" "mg" "energy"
+    for data in "sp500" "mg" "energy"
 	do
+	    printf "\n------ %s\n\n" "$(date +'%d/%m/%Y %H:%m:%S')"
+
 	    do_op "$model" "$data" "optimize"
 	    do_op "$model" "$data" "cv" &
 	    do_op "$model" "$data" "fit"

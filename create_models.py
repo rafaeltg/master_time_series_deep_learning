@@ -7,7 +7,7 @@ from pydl.models.utils import save_json
 data_sets = ["sp500", "mg", "energy"]
 
 model_params = {
-    'nb_epochs': hp_int(100, 500),
+    'nb_epochs': hp_int(50, 500),
     'batch_size': hp_int(32, 1024),
     'opt': hp_choice(['rmsprop', 'adagrad', 'adadelta', 'adam']),
     'learning_rate': hp_float(0.0001, 0.01)
@@ -51,9 +51,9 @@ def create_lstm():
             'model': {
                 'class_name': 'RNN',
                 'config': hp_choice([
-                    lstm(name, layers=[hp_int(16, 512)]),
-                    lstm(name, layers=[hp_int(16, 512), hp_int(16, 512)]),
-                    lstm(name, layers=[hp_int(16, 512), hp_int(16, 512), hp_int(16, 512)])
+                    lstm(name, layers=[hp_int(8, 512)]),
+                    lstm(name, layers=[hp_int(8, 512), hp_int(8, 512)]),
+                    lstm(name, layers=[hp_int(8, 512), hp_int(8, 512), hp_int(8, 512)])
                 ])
             }
         })
@@ -65,7 +65,7 @@ def create_sae():
     ae = {
         'class_name': 'Autoencoder',
         'config': add_model_params({
-            'n_hidden': hp_int(16, 512),
+            'n_hidden': hp_int(8, 512),
             'enc_activation': hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
             'l1_reg': hp_float(0, 0.001),
             'l2_reg': hp_float(0, 0.001)
@@ -92,7 +92,7 @@ def create_sdae():
     dae = {
         'class_name': 'DenoisingAutoencoder',
         'config': add_model_params({
-            'n_hidden': hp_int(16, 512),
+            'n_hidden': hp_int(8, 512),
             'enc_activation': hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
             'l1_reg': hp_float(0, 0.001),
             'l2_reg': hp_float(0, 0.001),
@@ -135,9 +135,9 @@ def create_mlp():
             'model': {
                 'class_name': 'MLP',
                 'config': hp_choice([
-                    mlp(name, layers=[hp_int(16, 512)]),
-                    mlp(name, layers=[hp_int(16, 512), hp_int(16, 512)]),
-                    mlp(name, layers=[hp_int(16, 512), hp_int(16, 512), hp_int(16, 512)])
+                    mlp(name, layers=[hp_int(8, 512)]),
+                    mlp(name, layers=[hp_int(8, 512), hp_int(8, 512)]),
+                    mlp(name, layers=[hp_int(8, 512), hp_int(8, 512), hp_int(8, 512)])
                 ])
             }
         })
