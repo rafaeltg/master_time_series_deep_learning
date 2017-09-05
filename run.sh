@@ -5,8 +5,8 @@ curr_dir=`pwd`
 
 function update_pydl {
     cd ../pydl
-    #git up
-    #pip3 install -r requirements.txt -U
+    git up
+    pip3 install -r requirements.txt -U
     sudo python3.5 setup.py install --force -O2
 }
 
@@ -28,7 +28,7 @@ function make_inputs {
 }
 
 function install {
-    #git up
+    git up
     chmod +x create_datasets.py create_models.py create_inputs.py create_outputs.py
 
     update_pydl
@@ -102,11 +102,11 @@ done
 
 # OUTPUTS
 #if [[ $OUT = true ]] && [[ $PRED = true ]] && [[ $EVAL = true ]]; then
-    ./create_outputs.py
+#   ./create_outputs.py
 #fi
 
-#tar -zcf ../results.tar.gz results/
+tar -zcf ../results.tar.gz results/
 
 #if [ $OPT = true ]; then
-#sudo shutdown -h now
+sudo shutdown -h now
 #fi

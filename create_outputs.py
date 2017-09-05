@@ -1,32 +1,31 @@
 #!/usr/bin/env python3.5
 
-import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import scipy.stats as stats
 from pydl.datasets import load_npy, acf
-from pandas.plotting import autocorrelation_plot
-
+from pydl.model_selection import r2_score, rmse, mae
 
 """
     1. Forecasts
-        1.1) actual x predicted (with forecast +- 2*err_std)
+        1.1) actual x predicted
         1.2) metrics:
-            1.2.1) Train set: CV mean and std of all metrics (rmse, r2)
+            1.2.1) Train set: CV mean and std of all metrics (mse, rmse, mae, r2)
             1.2.2) Test set: rmse, r2, corr
         1.3) scatter (actual x predicted)
         
     2. Errors
         2.1) box-plot of models
         2.2) White noise (errors acf)
+        2.3) scatter (actual x residual)
     
     3. Input data sets
         3.1) Stationarity test
-        3.2) Train and Test set properties (len, min, max, mean, std...)
+        3.2) Dataset properties (len, min, max, mean, std...)
 """
 
-models = ['mlp' 'sae', 'sdae', 'lstm']
+
+models = ['mlp', 'sae', 'sdae', 'lstm']
 data_sets = ["mg"] # 'sp500', 'energy'
 titles = {
     'mg': 'Mackey-Glass',
@@ -76,6 +75,7 @@ def make_plots():
             # Residuals
             errs = y_test - y_test_pred
 
+            # TODO: fix y lim
             plt.figure()
             plt.scatter(y_test, errs)
             plt.title(titles[d] + ' Forecast Residuals')
