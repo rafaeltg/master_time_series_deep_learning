@@ -4,15 +4,15 @@ curr_dir=`pwd`
 
 
 function update_pydl {
-    cd ../Deep-Learning-Algorithms
-    git up
-    pip3 install -r requirements.txt -U
+    cd ../pydl
+    #git up
+    #pip3 install -r requirements.txt -U
     sudo python3.5 setup.py install --force -O2
 }
 
 function make_dirs {
     rm -rf data inputs models results
-    mkdir -p {data,inputs,models,results/{optimize,fit,cv,predict,eval,figs}}
+    mkdir -p {data,inputs,models,results/{optimize,fit,cv,predict,eval,figs,desc}}
 }
 
 function make_inputs {
@@ -28,7 +28,7 @@ function make_inputs {
 }
 
 function install {
-    git up
+    #git up
     chmod +x create_datasets.py create_models.py create_inputs.py create_outputs.py
 
     update_pydl
@@ -39,9 +39,10 @@ function install {
 }
 
 function do_operation {
+    echo $curr_dir
 	for model in "mlp" "sae" "sdae" "lstm"
 	do
-		for data in "sp500" "mg" "energy"
+		for data in "mg" #"sp500" "energy"
 		do
 		    in="$curr_dir"/inputs/"$model"_"$data"_"$1".json
 		    out="$curr_dir"/results/"$1"
@@ -86,14 +87,14 @@ done
 
 for model in "mlp" "sae" "sdae" "lstm"
 do
-    for data in "sp500" "mg" "energy"
+    for data in "mg" #"sp500" "energy"
 	do
 	    printf "\n------ %s\n\n" "$(date +'%d/%m/%Y %H:%m:%S')"
 
 	    do_op "$model" "$data" "optimize"
 	    do_op "$model" "$data" "cv" &
 	    do_op "$model" "$data" "fit"
-	    do_op "$model" "$data" "predict" &
+	    do_op "$model" "$data" "predict"
 	    do_op "$model" "$data" "eval"
 	    wait
 	done
@@ -101,11 +102,11 @@ done
 
 # OUTPUTS
 #if [[ $OUT = true ]] && [[ $PRED = true ]] && [[ $EVAL = true ]]; then
-#    ./create_outputs.py
+    ./create_outputs.py
 #fi
 
-tar -zcf ../results.tar.gz results/
+#tar -zcf ../results.tar.gz results/
 
 #if [ $OPT = true ]; then
-sudo shutdown -h now
+#sudo shutdown -h now
 #fi

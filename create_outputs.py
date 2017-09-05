@@ -1,11 +1,12 @@
 #!/usr/bin/env python3.5
 
 import math
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats as stats
-from pydl.datasets import load_npy
-from pandas.tools.plotting import autocorrelation_plot
+from pydl.datasets import load_npy, acf
+from pandas.plotting import autocorrelation_plot
 
 
 """
@@ -25,58 +26,77 @@ from pandas.tools.plotting import autocorrelation_plot
         3.2) Train and Test set properties (len, min, max, mean, std...)
 """
 
-models = ['sae', 'mlp']  #'lstm',
-data_sets = ['sp500'] # , 'mg', 'energy'
+models = ['mlp' 'sae', 'sdae', 'lstm']
+data_sets = ["mg"] # 'sp500', 'energy'
+titles = {
+    'mg': 'Mackey-Glass',
+    'sp500': 'S&P500 daily log-returns',
+    'energy': ''
+}
+idx_transf = {
+    'mg': lambda x: x,
+    'sp500': pd.to_datetime,
+    'energy': pd.to_datetime
+}
 
 
-def get_forecast_results():
+def make_plots():
+
     for d in data_sets:
-        actual = load_npy('data/%s_test_y.npy' % d)[:, 0]
+
+        y_test = load_npy('data/%s_test_y.npy' % d)[:, 0]
         idxs = load_npy('data/%s_test_y_index.npy' % d)
-        idxs = pd.to_datetime(idxs)
+        idxs = idx_transf[d](idxs)
 
         model_errors = []
 
         for m in models:
-            preds = load_npy('results/predict/%s_%s_preds.npy' % (m, d))[:, 0]
+            y_test_pred = load_npy('results/predict/%s_%s_preds.npy' % (m, d))[:, 0]
 
+            # Actual x Predicted
             plt.figure()
             fig, ax = plt.subplots()
-            ax.plot(idxs, actual, color='red', label='Actual')
-            ax.plot(idxs, preds, color='blue', label='Predicted')
+            ax.plot(idxs, y_test, color='red', label='Actual')
+            ax.plot(idxs, y_test_pred, color='blue', label='Predicted')
             ax.set_xlim(idxs[0], idxs[-1])
+            ax.set_ylim(min(min(y_test), min(y_test_pred))*1.1, max(max(y_test), max(y_test_pred))*1.45)
             plt.legend(loc='best')
+            plt.title(titles[d])
             fig.autofmt_xdate()
-            plt.savefig(filename='results/figs/%s_%s_actual_preds.png' % (m, d))
+            plt.savefig(filename='results/figs/%s_%s_actual_pred.png' % (m, d))
 
             plt.figure()
-            plt.scatter(actual, preds)
-            plt.ylabel('Actual')
-            plt.xlabel('Predicted')
+            plt.scatter(y_test, y_test_pred)
+            plt.xlabel('Actual')
+            plt.ylabel('Predicted')
+            plt.title(titles[d])
             plt.tight_layout()
-            plt.savefig(filename='results/figs/%s_%s_preds_scatter.png' % (m, d))
+            plt.savefig(filename='results/figs/%s_%s_actual_pred_scatter.png' % (m, d))
+
+            # Residuals
+            errs = y_test - y_test_pred
 
             plt.figure()
-            errs = actual - preds
-            errs_series = pd.Series(errs)
-            autocorrelation_plot(errs_series)
-            plt.savefig(filename='results/figs/%s_%s_errs_auto_corr.png' % (m, d))
+            plt.scatter(y_test, errs)
+            plt.title(titles[d] + ' Forecast Residuals')
+            plt.xlabel('Predicted')
+            plt.ylabel('Residual')
+            plt.axhline(y=0, color='black', ls='--')
+            plt.savefig(filename='results/figs/%s_%s_residuals_scatter.png' % (m, d))
+
+            plt.figure()
+            plt.title('Forecast Residual Autocorrelation')
+            acf(pd.Series(np.reshape(errs, len(errs))), nlags=50, plot=True, ax=plt.gca())
+            plt.savefig(filename='results/figs/%s_%s_residuals_acf.png' % (m, d))
 
             model_errors.append(errs)
 
-        # Errors boxplot
+        # Residuals boxplot
         plt.figure(1)
-        plt.boxplot(model_errors, labels=models)
-        plt.savefig(filename='results/figs/%s_errors_boxplot.png' % d)
-
-
-def _get_conf_intervals(errs):
-    errs_mean = errs.mean()
-    errs_std = errs.std()
-    z_critical = stats.norm.ppf(q=0.95)  # Get the z-critical value
-    margin_of_error = z_critical * (errs_std/math.sqrt(len(errs)))
-    return errs_mean - margin_of_error, errs_mean + margin_of_error
+        plt.boxplot(model_errors, labels=[m.upper() for m in models])
+        plt.title(titles[d])
+        plt.savefig(filename='results/figs/%s_residuals_boxplot.png' % d)
 
 
 if __name__ == '__main__':
-    get_forecast_results()
+    make_plots()

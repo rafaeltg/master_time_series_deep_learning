@@ -1,29 +1,48 @@
 #!/usr/bin/env python3.5
 
-import time
+import os
 import calendar
 import numpy as np
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from datetime import datetime, timedelta
-from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset, load_csv
+from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset, load_csv, acf, test_stationarity
 
 
 def sp500_data_set():
-    today = time.strftime("%Y-%m-%d")
-    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', today, usecols=['Close'])
-    sp500_log_ret = get_log_return(sp500['Close'])
+
+    """
+
+    - Data: Daily log return of S&P500 closing value
+    - Sample size: from 2000-01-01 to 2017-07-01
+    - Train size: from 2000-01-01 to 2016-06-30
+    - Test size: 1 year (from 2016-07-01 to 2017-07-01)
+    - Forecast window: 1 step ahead
+
+    """
+
+    input_file = 'data_sets/sp500_daily_log_return.csv'
+    end = "2017-07-01"
+
+    if os.path.exists(input_file):
+        sp500_log_ret = load_csv(
+            filename=input_file,
+            dtype={'Close': np.float64},
+            index_col='Date',
+        )
+    else:
+        sp500 = get_stock_historical_data('SPY', '2000-01-01', end, usecols=['Close'])
+        sp500_log_ret = get_log_return(sp500['Close'])
+        sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
+
+    # Describe input data
+    describe_data(sp500_log_ret, 'sp500')
 
     # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
-    look_back = 20
-    look_ahead = 1
-    x, y = create_dataset(sp500_log_ret, look_back, look_ahead)
-
-    x = pd.DataFrame(data=x, index=sp500_log_ret.index.get_values()[(look_back-1):(-look_ahead)])
-    y = pd.DataFrame(data=y, index=sp500_log_ret.index.get_values()[(look_back-1):(-look_ahead)])
+    x, y = create_features(sp500_log_ret)
 
     # split into train and test sets
-    test_start = (datetime.now() + timedelta(days=-365)).strftime("%Y-%m-%d")
+    test_start = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=-365)).strftime("%Y-%m-%d")
     x_train, y_train = x[:test_start], y[:test_start]
     x_test, y_test = x[test_start:], y[test_start:]
 
@@ -35,17 +54,42 @@ def sp500_data_set():
 
 
 def mg_data_set():
-    look_back = 10
-    look_ahead = 1
 
-    mg = mackey_glass(sample_len=7000 + look_back, seed=42)
+    """
+
+   - Data: Mackey-Glass time-series (tau = 17, delta_t = 10)
+   - Sample size: 4000 points
+   - Train size: 80%
+   - Test size: 20%
+   - Forecast window: 1 step ahead
+
+   """
+
+    input_file = 'data_sets/mg.csv'
+    sample_len = 5000
+    look_ahead = 1
+    train_size = .8
+
+    if os.path.exists(input_file):
+        mg = load_csv(
+            filename=input_file,
+            dtype={'Value': np.float64},
+            index_col='Idx',
+        )
+    else:
+        mg = mackey_glass(sample_len=sample_len, seed=42)
+        mg.to_csv(input_file, index_label='Idx')
+
+    # Describe input data
+    describe_data(mg, 'mg')
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
-    x, y = create_dataset(mg, look_back, look_ahead)
+    x, y = create_features(mg, look_ahead)
 
     # split into train and test sets
-    x_train, y_train = x[:6500], y[:6500]
-    x_test, y_test = x[6500:], y[6500:]
+    train_idx = int(len(x) * train_size)
+    x_train, y_train = x[:train_idx], y[:train_idx]
+    x_test, y_test = x[train_idx:len(x)], y[train_idx:len(y)]
 
     np.save('data/mg_train_x.npy', x_train)
     np.save('data/mg_train_y.npy', y_train)
@@ -55,10 +99,24 @@ def mg_data_set():
 
 
 def energy_data_set():
+
+    """
+
+   - Data:
+   - Sample size:
+   - Train size:
+   - Test size:
+   - Forecast window: 1 step ahead
+
+   """
+
     data = load_csv(filename='data_sets/2015_2016_iso_ne_ca_hourly.csv',
                     has_header=True,
                     index_col='Date',
                     dtype={'Date': datetime, 'DryBulb': np.float64, 'DewPnt': np.float64, 'Demand': np.float64})
+
+    # Describe input data
+    describe_data(data, 'energy')
 
     # Add Date-time features
     dt_feats = get_date_time_features(data.index.get_values())
@@ -162,7 +220,45 @@ def remove_outliers(x):
     return x.clip(m-2.5*std, m+2.5*std)
 
 
+def create_features(ts, look_ahead=1):
+
+    """
+    Features:
+        - 10 most correlated lags
+
+    :param ts:
+    :param look_ahead:
+    :return:
+    """
+
+    acfs, conf = acf(ts, 100)
+    acfs = np.asarray(acfs[1:])
+
+    most_corr = [v > conf for v in acfs]
+    if sum(most_corr) >= 1:
+        corr_lags = np.argsort(acfs[most_corr])[-10:]
+        corr_lags = sorted(corr_lags)
+        look_back = corr_lags[-1] + 1
+    else:
+        look_back = 20
+        corr_lags = range(look_back)
+
+    x, y = create_dataset(ts, look_back, look_ahead)
+
+    # use only the most correlated lags
+    x = np.array([X[corr_lags] for X in x])
+
+    x = pd.DataFrame(data=x, index=ts.index.get_values()[(look_back-1):(-look_ahead)])
+    y = pd.DataFrame(data=y, index=ts.index.get_values()[(look_back-1):(-look_ahead)])
+    return x, y
+
+
+def describe_data(ts, dataset):
+    test_stationarity(ts.as_matrix(), 'results/desc/%s_stat.csv' % dataset)
+    ts.describe().to_csv('results/desc/%s_desc.csv' % dataset)
+
+
 if __name__ == '__main__':
-    sp500_data_set()
+    #sp500_data_set()
     mg_data_set()
-    energy_data_set()
+    #energy_data_set()

@@ -33,7 +33,7 @@ def supervised_model_params(name, layers, p={}):
     return p
 
 
-def create_lstm():
+def create_lstm(dataset, save=False):
 
     def lstm(name, layers):
         return supervised_model_params(
@@ -45,23 +45,25 @@ def create_lstm():
             },
         )
 
-    for d in data_sets:
-        name = 'lstm_%s' % d
-        space = hp_space({
-            'model': {
-                'class_name': 'RNN',
-                'config': hp_choice([
-                    lstm(name, layers=[hp_int(8, 512)]),
-                    lstm(name, layers=[hp_int(8, 512), hp_int(8, 512)]),
-                    lstm(name, layers=[hp_int(8, 512), hp_int(8, 512), hp_int(8, 512)])
-                ])
-            }
-        })
+    name = 'lstm_%s' % dataset
+    lstm_space = hp_space({
+        'model': {
+            'class_name': 'RNN',
+            'config': hp_choice([
+                lstm(name, layers=[hp_int(8, 512)]),
+                lstm(name, layers=[hp_int(8, 512), hp_int(8, 512)]),
+                lstm(name, layers=[hp_int(8, 512), hp_int(8, 512), hp_int(8, 512)])
+            ])
+        }
+    })
 
-        save_json(space.to_json(), 'models/%s.json' % name)
+    if save:
+        save_json(lstm_space.to_json(), 'models/%s.json' % name)
+
+    return lstm_space
 
 
-def create_sae():
+def create_sae(dataset, save=False):
     ae = {
         'class_name': 'Autoencoder',
         'config': add_model_params({
@@ -72,23 +74,25 @@ def create_sae():
         })
     }
 
-    for d in data_sets:
-        name = 'sae_%s' % d
-        space = hp_space({
-            'model': {
-                'class_name': 'StackedAutoencoder',
-                'config': hp_choice([
-                    supervised_model_params(name=name, layers=[ae]),
-                    supervised_model_params(name=name, layers=[ae, ae]),
-                    supervised_model_params(name=name, layers=[ae, ae, ae])
-                ])
-            }
-        })
+    name = 'sae_%s' % dataset
+    sae_space = hp_space({
+        'model': {
+            'class_name': 'StackedAutoencoder',
+            'config': hp_choice([
+                supervised_model_params(name=name, layers=[ae]),
+                supervised_model_params(name=name, layers=[ae, ae]),
+                supervised_model_params(name=name, layers=[ae, ae, ae])
+            ])
+        }
+    })
 
-        save_json(space.to_json(), 'models/%s.json' % name)
+    if save:
+        save_json(sae_space.to_json(), 'models/%s.json' % name)
+
+    return sae_space
 
 
-def create_sdae():
+def create_sdae(dataset, save=False):
     dae = {
         'class_name': 'DenoisingAutoencoder',
         'config': add_model_params({
@@ -101,23 +105,25 @@ def create_sdae():
         })
     }
 
-    for d in data_sets:
-        name = 'sdae_%s' % d
-        space = hp_space({
-            'model': {
-                'class_name': 'StackedAutoencoder',
-                'config': hp_choice([
-                    supervised_model_params(name=name, layers=[dae]),
-                    supervised_model_params(name=name, layers=[dae, dae]),
-                    supervised_model_params(name=name, layers=[dae, dae, dae])
-                ])
-            }
-        })
+    name = 'sdae_%s' % dataset
+    sdae_space = hp_space({
+        'model': {
+            'class_name': 'StackedAutoencoder',
+            'config': hp_choice([
+                supervised_model_params(name=name, layers=[dae]),
+                supervised_model_params(name=name, layers=[dae, dae]),
+                supervised_model_params(name=name, layers=[dae, dae, dae])
+            ])
+        }
+    })
 
-        save_json(space.to_json(), 'models/%s.json' % name)
+    if save:
+        save_json(sdae_space.to_json(), 'models/%s.json' % name)
+
+    return sdae_space
 
 
-def create_mlp():
+def create_mlp(dataset, save=False):
 
     def mlp(name, layers):
         return supervised_model_params(
@@ -129,24 +135,28 @@ def create_mlp():
             }
         )
 
-    for d in data_sets:
-        name = 'mlp_%s' % d
-        space = hp_space({
-            'model': {
-                'class_name': 'MLP',
-                'config': hp_choice([
-                    mlp(name, layers=[hp_int(8, 512)]),
-                    mlp(name, layers=[hp_int(8, 512), hp_int(8, 512)]),
-                    mlp(name, layers=[hp_int(8, 512), hp_int(8, 512), hp_int(8, 512)])
-                ])
-            }
-        })
+    name = 'mlp_%s' % dataset
+    mlp_space = hp_space({
+        'model': {
+            'class_name': 'MLP',
+            'config': hp_choice([
+                mlp(name, layers=[hp_int(8, 512)]),
+                mlp(name, layers=[hp_int(8, 512), hp_int(8, 512)]),
+                mlp(name, layers=[hp_int(8, 512), hp_int(8, 512), hp_int(8, 512)])
+            ])
+        }
+    })
 
-        save_json(space.to_json(), 'models/%s.json' % name)
+    if save:
+        save_json(mlp_space.to_json(), 'models/%s.json' % name)
+
+    return mlp_space
 
 
 if __name__ == '__main__':
-    create_lstm()
-    create_sae()
-    create_sdae()
-    create_mlp()
+
+    for d in data_sets:
+        create_lstm(d, True)
+        create_sae(d, True)
+        create_sdae(d, True)
+        create_mlp(d, True)

@@ -5,19 +5,22 @@ from pydl.models.utils import save_json, load_json
 
 models = ['lstm', 'sae', 'sdae', 'mlp']
 
+"""
+    3-fold sliding window CV
+"""
 cv_params = {
     'sp500': {
-        "window": 2772,
+        "window": 3238,
         "horizon": 252,
         "fixed": False,
         "by": 252
     },
 
     'mg': {
-        "window": 4000,
-        "horizon": 500,
+        "window": 2311,
+        "horizon": 550,
         "fixed": False,
-        "by": 500
+        "by": 550
     },
 
     'energy': {
@@ -40,14 +43,16 @@ def create_opt_inputs():
                         "class": "cmaes",
                         "params": {
                             "pop_size": 24,
-                            "max_iter": 20
+                            "max_iter": 50
                         }
                     },
 
                     "obj_fn": {
                         "cv": {
-                            "method": "time_series",
-                            "params": cv_params[d]
+                            "method": "split",
+                            "params": {
+                                "test_size": 0.2
+                            }
                         }
                     },
 
@@ -94,7 +99,7 @@ def create_cv_inputs():
                 "cv": {
                     "method": "time_series",
                     "params": cv_params[d],
-                    "max_threads": 5
+                    "max_threads": 3
                 },
 
                 'data_set': {
@@ -139,7 +144,7 @@ def create_eval_inputs():
                     }
                 },
 
-                'scoring': ['rmse', 'mse', 'mae', 'mape', 'r2'],
+                'scoring': ['rmse', 'mse', 'mae', 'r2'],
 
                 'errors_acf': {
                     "nlags": 30
