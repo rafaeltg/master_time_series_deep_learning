@@ -26,7 +26,7 @@ from pydl.model_selection import r2_score, rmse, mae
 
 
 models = ['mlp', 'sae', 'sdae', 'lstm']
-data_sets = ['mg,' 'sp500', 'energy']
+data_sets = ['mg', 'sp500', 'energy']
 titles = {
     'mg': 'Mackey-Glass',
     'sp500': 'S&P500 daily log-returns',
