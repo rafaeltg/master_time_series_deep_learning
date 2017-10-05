@@ -28,12 +28,7 @@ function do_op {
     in="$curr_dir"/inputs/"$1"_"$2"_"$3".json
 	out="$curr_dir"/results/"$3"
 	printf "## %s \n" $3
-
-	if [ "$4" = true ]; then
-	    sudo nice -n -19 pydl "$3" -c "$in" -o "$out"
-	else
-	    pydl "$3" -c "$in" -o "$out"
-	fi
+    pydl "$3" -c "$in" -o "$out"
 }
 
 function run {
@@ -47,11 +42,11 @@ function run {
         do
             printf "\n>> %s - %s ------ %s\n\n" "$ds" "$m" "$(date +'%d/%m/%Y %H:%m:%S')"
 
-            do_op "$m" "$ds" "optimize" true
-            do_op "$m" "$ds" "cv" true &
-            do_op "$m" "$ds" "fit" false
-            do_op "$m" "$ds" "predict" false
-            do_op "$m" "$ds" "eval" false
+            do_op "$m" "$ds" "optimize"
+            do_op "$m" "$ds" "cv" &
+            do_op "$m" "$ds" "fit"
+            do_op "$m" "$ds" "predict"
+            do_op "$m" "$ds" "eval"
     	    wait
         done
     done
