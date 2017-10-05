@@ -1,59 +1,14 @@
-#!/usr/bin/env python3.5
-
 import os
 import calendar
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from datetime import datetime, timedelta
 from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset, load_csv, acf, test_stationarity
 
 
-def sp500_data_set():
-
-    """
-
-    - Data: Daily log return of S&P500 closing value
-    - Sample size: from 2000-01-01 to 2017-07-01
-    - Train size: from 2000-01-01 to 2016-06-30
-    - Test size: 1 year (from 2016-07-01 to 2017-07-01)
-    - Forecast window: 1 step ahead
-
-    """
-
-    input_file = 'data_sets/sp500_daily_log_return.csv'
-    end = "2017-07-01"
-
-    if os.path.exists(input_file):
-        sp500_log_ret = load_csv(
-            filename=input_file,
-            dtype={'Close': np.float64},
-            index_col='Date',
-        )
-    else:
-        sp500 = get_stock_historical_data('SPY', '2000-01-01', end, usecols=['Close'])
-        sp500_log_ret = get_log_return(sp500['Close'])
-        sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
-
-    # Describe input data
-    describe_data(sp500_log_ret, 'sp500')
-
-    # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
-    x, y = create_features(sp500_log_ret)
-
-    # split into train and test sets
-    test_start = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=-365)).strftime("%Y-%m-%d")
-    x_train, y_train = x[:test_start], y[:test_start]
-    x_test, y_test = x[test_start:], y[test_start:]
-
-    np.save('data/sp500_train_x.npy', x_train.values)
-    np.save('data/sp500_train_y.npy', y_train.values)
-    np.save('data/sp500_test_x.npy', x_test.values)
-    np.save('data/sp500_test_y.npy', y_test.values)
-    np.save('data/sp500_test_y_index.npy', y_test.index.get_values())
-
-
-def mg_data_set():
+def create_mg():
 
     """
 
@@ -98,7 +53,51 @@ def mg_data_set():
     np.save('data/mg_test_y_index.npy', range(len(x_test)))
 
 
-def energy_data_set():
+def create_sp500():
+
+    """
+
+    - Data: Daily log return of S&P500 closing value
+    - Sample size: from 2000-01-01 to 2017-07-01
+    - Train size: from 2000-01-01 to 2016-06-30
+    - Test size: 1 year (from 2016-07-01 to 2017-07-01)
+    - Forecast window: 1 step ahead
+
+    """
+
+    input_file = 'data_sets/sp500_daily_log_return.csv'
+    end = "2017-07-01"
+
+    if os.path.exists(input_file):
+        sp500_log_ret = load_csv(
+            filename=input_file,
+            dtype={'Close': np.float64},
+            index_col='Date',
+        )
+    else:
+        sp500 = get_stock_historical_data('SPY', '2000-01-01', end, usecols=['Close'])
+        sp500_log_ret = get_log_return(sp500['Close'])
+        sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
+
+    # Describe input data
+    describe_data(sp500_log_ret, 'sp500')
+
+    # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
+    x, y = create_features(sp500_log_ret)
+
+    # split into train and test sets
+    test_start = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=-365)).strftime("%Y-%m-%d")
+    x_train, y_train = x[:test_start], y[:test_start]
+    x_test, y_test = x[test_start:], y[test_start:]
+
+    np.save('data/sp500_train_x.npy', x_train.values)
+    np.save('data/sp500_train_y.npy', y_train.values)
+    np.save('data/sp500_test_x.npy', x_test.values)
+    np.save('data/sp500_test_y.npy', y_test.values)
+    np.save('data/sp500_test_y_index.npy', y_test.index.get_values())
+
+
+def create_energy():
 
     """
 
@@ -258,7 +257,16 @@ def describe_data(ts, dataset):
     ts.describe().to_csv('results/desc/%s_desc.csv' % dataset)
 
 
-if __name__ == '__main__':
-    #sp500_data_set()
-    mg_data_set()
-    #energy_data_set()
+dt_fn = {
+    'mg': create_mg,
+    'sp500': create_sp500,
+    'energy': create_energy
+}
+
+
+def fn(x):
+    dt_fn[x]()
+
+
+def create_datasets(dts):
+    Parallel(n_jobs=len(dts))(delayed(fn, check_pickle=False)(dt) for dt in dts)

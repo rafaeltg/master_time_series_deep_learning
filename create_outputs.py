@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.5
 
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pydl.datasets import load_npy, acf
-from pydl.model_selection import r2_score, rmse, mae
 
 """
     1. Forecasts
@@ -24,9 +24,6 @@ from pydl.model_selection import r2_score, rmse, mae
         3.2) Dataset properties (len, min, max, mean, std...)
 """
 
-
-models = ['mlp', 'sae', 'sdae', 'lstm']
-data_sets = ['mg', 'sp500', 'energy']
 titles = {
     'mg': 'Mackey-Glass',
     'sp500': 'S&P500 daily log-returns',
@@ -39,9 +36,9 @@ idx_transf = {
 }
 
 
-def make_plots():
+def make_plots(models, ds):
 
-    for d in data_sets:
+    for d in ds:
 
         y_test = load_npy('data/%s_test_y.npy' % d)[:, 0]
         idxs = load_npy('data/%s_test_y_index.npy' % d)
@@ -107,4 +104,10 @@ def make_plots():
 
 
 if __name__ == '__main__':
-    make_plots()
+
+    parser = argparse.ArgumentParser(description='Create output plots and csvs.')
+    parser.add_argument('--datasets', dest='datasets', nargs='+', required=True, help='Datasets to be used')
+    parser.add_argument('--models', dest='models', nargs='+', required=True, help='Models to create inputs')
+    args = parser.parse_args()
+
+    make_plots(args.models, args.datasets)

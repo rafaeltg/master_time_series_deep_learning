@@ -1,5 +1,3 @@
-#!/usr/bin/env python3.5
-
 from pydl.hyperopt import *
 from pydl.models.utils import save_json
 
@@ -33,7 +31,7 @@ def supervised_model_params(name, layers, p={}):
     return p
 
 
-def create_lstm(dataset, save=False):
+def create_lstm(dataset, save=True):
 
     def lstm(name, layers):
         return supervised_model_params(
@@ -63,7 +61,7 @@ def create_lstm(dataset, save=False):
     return lstm_space
 
 
-def create_sae(dataset, save=False):
+def create_sae(dataset, save=True):
     ae = {
         'class_name': 'Autoencoder',
         'config': add_model_params({
@@ -92,7 +90,7 @@ def create_sae(dataset, save=False):
     return sae_space
 
 
-def create_sdae(dataset, save=False):
+def create_sdae(dataset, save=True):
     dae = {
         'class_name': 'DenoisingAutoencoder',
         'config': add_model_params({
@@ -123,7 +121,7 @@ def create_sdae(dataset, save=False):
     return sdae_space
 
 
-def create_mlp(dataset, save=False):
+def create_mlp(dataset, save=True):
 
     def mlp(name, layers):
         return supervised_model_params(
@@ -153,10 +151,9 @@ def create_mlp(dataset, save=False):
     return mlp_space
 
 
-if __name__ == '__main__':
-
-    for d in data_sets:
-        create_lstm(d, True)
-        create_sae(d, True)
-        create_sdae(d, True)
-        create_mlp(d, True)
+models_fn = {
+    'lstm': create_lstm,
+    'sae': create_sae,
+    'sdae': create_sdae,
+    'mlp': create_mlp
+}
