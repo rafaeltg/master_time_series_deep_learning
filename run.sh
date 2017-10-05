@@ -38,6 +38,7 @@ function do_op {
 
 function run {
 
+    echo "Creating inputs..."
     ./create_inputs.py --models ${models[*]} --datasets ${datasets[*]}
 
     for m in ${models[*]}
@@ -55,7 +56,9 @@ function run {
         done
     done
 
+    echo "Creating outputs..."
 	./create_outputs.py --models ${models[*]} --datasets ${datasets[*]}
+
 	tar -zcf ../results.tar.gz results/
 }
 
