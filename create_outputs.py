@@ -49,6 +49,10 @@ def make_plots(models, ds):
         for m in models:
             y_test_pred = load_npy('results/predict/%s_%s_preds.npy' % (m, d))[:, 0]
 
+            idxs = idxs[0:100]
+            y_test = y_test[0:100]
+            y_test_pred = y_test_pred[0:100]
+
             # Actual x Predicted
             plt.figure(1)
             fig, ax = plt.subplots()
@@ -59,7 +63,7 @@ def make_plots(models, ds):
             plt.legend(loc='best')
             plt.title(titles[d])
             fig.autofmt_xdate()
-            plt.savefig(filename='results/figs/%s_%s_actual_pred.png' % (m, d))
+            plt.savefig(fname='results/figs/%s_%s_actual_pred.png' % (m, d))
             plt.clf()
 
             plt.figure(1)
@@ -68,7 +72,7 @@ def make_plots(models, ds):
             plt.ylabel('Predicted')
             plt.title(titles[d])
             plt.tight_layout()
-            plt.savefig(filename='results/figs/%s_%s_actual_pred_scatter.png' % (m, d))
+            plt.savefig(fname='results/figs/%s_%s_actual_pred_scatter.png' % (m, d))
             plt.clf()
 
             # Residuals
@@ -82,13 +86,13 @@ def make_plots(models, ds):
             plt.title(titles[d] + ' Forecast Residuals')
             plt.xlabel('Predicted')
             plt.ylabel('Residual')
-            plt.savefig(filename='results/figs/%s_%s_residuals_scatter.png' % (m, d))
+            plt.savefig(fname='results/figs/%s_%s_residuals_scatter.png' % (m, d))
             plt.clf()
 
             plt.figure(1)
             plt.title('Forecast Residual Autocorrelation')
             acf(pd.Series(np.reshape(errs, len(errs))), nlags=50, plot=True, ax=plt.gca())
-            plt.savefig(filename='results/figs/%s_%s_residuals_acf.png' % (m, d))
+            plt.savefig(fname='results/figs/%s_%s_residuals_acf.png' % (m, d))
             plt.clf()
 
             model_errors.append(errs)
@@ -99,7 +103,7 @@ def make_plots(models, ds):
         plt.title(titles[d])
         plt.ylabel('Residual')
         plt.xlabel('Model')
-        plt.savefig(filename='results/figs/%s_residuals_boxplot.png' % d)
+        plt.savefig(fname='results/figs/%s_residuals_boxplot.png' % d)
         plt.clf()
 
 

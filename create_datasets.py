@@ -39,7 +39,7 @@ def create_mg():
     describe_data(mg, 'mg')
 
     # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
-    x, y = create_features(mg, look_ahead)
+    x, y = create_lag_features(mg, look_ahead)
 
     # split into train and test sets
     train_idx = int(len(x) * train_size)
@@ -68,22 +68,40 @@ def create_sp500():
     input_file = 'data_sets/sp500_daily_log_return.csv'
     end = "2017-07-01"
 
-    if os.path.exists(input_file):
-        sp500_log_ret = load_csv(
-            filename=input_file,
-            dtype={'Close': np.float64},
-            index_col='Date',
-        )
-    else:
-        sp500 = get_stock_historical_data('SPY', '2000-01-01', end, usecols=['Close'])
-        sp500_log_ret = get_log_return(sp500['Close'])
-        sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
+    # if os.path.exists(input_file):
+    #     sp500_log_ret = load_csv(filename=input_file,
+    #                              dtype={'Close': np.float64},
+    #                              index_col='Date')
+    # else:
+    #     sp500 = get_stock_historical_data('GSPC', '2000-01-01', end, usecols=['Close'])
+    #     sp500_log_ret = get_log_return(sp500['Close'])
+    #     sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
+
+    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', end, usecols=['Close'])
+    sp500_log_ret = get_log_return(sp500)
 
     # Describe input data
-    describe_data(sp500_log_ret, 'sp500')
+    #describe_data(sp500_log_ret, 'sp500')
+
+    # Use info from Tokyo and Hang Seng Index
+    n225 = get_stock_historical_data('^N225', '2000-01-01', end, usecols=['Close'])
+    n225_log_ret = get_log_return(n225)
+
+    hsi = get_stock_historical_data('^HSI', '2000-01-01', end, usecols=['Close'])
+    hsi_log_ret = get_log_return(hsi)
+
+    dt = pd.concat([sp500_log_ret['Close'], n225_log_ret['Close'], hsi_log_ret['Close']],
+                   axis=1,
+                   join_axes=[sp500_log_ret.index],
+                   keys=['GSPC', 'N225', 'HSI']).dropna()
+
+    print(dt.columns.values)
+    print(dt.head(10))
+
+    return
 
     # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
-    x, y = create_features(sp500_log_ret)
+    x, y = create_lag_features(sp500_log_ret)
 
     # split into train and test sets
     test_start = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=-365)).strftime("%Y-%m-%d")
@@ -101,49 +119,36 @@ def create_energy():
 
     """
 
-   - Data:
-   - Sample size:
-   - Train size:
-   - Test size:
-   - Forecast window: 1 step ahead
+    - Data:
+    - Sample size:
+    - Train size:
+    - Test size:
+    - Forecast window: 1 step ahead
 
-   """
+    """
 
     data = load_csv(filename='data_sets/2015_2016_iso_ne_ca_hourly.csv',
                     has_header=True,
                     index_col='Date',
-                    dtype={'Date': datetime, 'DryBulb': np.float64, 'DewPnt': np.float64, 'Demand': np.float64})
-
-    # Describe input data
-    describe_data(data, 'energy')
-
-    # Add Date-time features
-    dt_feats = get_date_time_features(data.index.get_values())
-    data = data.assign(**dt_feats)
-
-    # Add temperature features
-    temp_feats = get_temperature_features(data.DryBulb, data.DewPnt)
-    data = data.assign(**temp_feats)
-    data.drop(['DryBulb', 'DewPnt'], axis=1, inplace=True)
+                    dtype={'DryBulb': np.float64, 'DewPnt': np.float64, 'Demand': np.float64})
 
     # Transform demand data
-    data.Demand = get_log_return(data['Demand'], periods=1)
+    demand = get_log_return(data['Demand'], periods=1)
 
-    # Add lagged-values
-    data = data.assign(Demand_24=data.Demand.shift(24),
-                       Demand_168=data.Demand.shift(168))
+    # Describe input data
+    describe_data(demand, 'energy')
 
-    # Add Y variable
-    data = data.assign(Y=data.Demand.shift(-1))
+    # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
+    x, y = create_lag_features(demand)
 
-    # Remove rows with NA values
-    data.dropna(inplace=True)
+    # Calculate Date-time features
+    # time_feats = get_date_time_features(x.index.get_values())
+    # x = pd.concat([x, time_feats], axis=1, join_axes=[x.index])
 
     # split into train and test sets
-    x = data[data.columns.difference(['Y'])]
-    test_start = pd.to_datetime('2016-09-01')
-    x_train, y_train = x[:test_start], data.Y[:test_start]
-    x_test, y_test = x[test_start:], data.Y[test_start:]
+    test_start = '2016-11-01'
+    x_train, y_train = x[:test_start], y[:test_start]
+    x_test, y_test = x[test_start:], y[test_start:]
 
     np.save('data/energy_train_x.npy', x_train.values)
     np.save('data/energy_train_y.npy', y_train.values)
@@ -151,8 +156,14 @@ def create_energy():
     np.save('data/energy_test_y.npy', y_test.values)
     np.save('data/energy_test_y_index.npy', y_test.index.get_values())
 
+    # # Add temperature features
+    # temp_feats = get_temperature_features(data.DryBulb, data.DewPnt)
+    # data = data.assign(**temp_feats)
+    # data.drop(['DryBulb', 'DewPnt'], axis=1, inplace=True)
+
 
 def get_date_time_features(dates):
+
     """
     Features:
     
@@ -181,13 +192,15 @@ def get_date_time_features(dates):
         week.append((dt.isocalendar()[1]-1) / (datetime(dt.year, 12, 28).isocalendar()[1] - 1))
         weekend_holiday.append(int((dt in us_holidays) or (dt.isocalendar()[2] in [5, 6, 7])))
 
-    return {
-        'Hour': hour,
-        'Day': day,
-        'Month': month,
-        'Week': week,
-        'Weekend_Holiday': weekend_holiday
-    }
+    return pd.DataFrame(
+        {
+            'Hour': hour,
+            'Day': day,
+            'Month': month,
+            'Week': week,
+            'Weekend_Holiday': weekend_holiday
+        },
+        index=dates)
 
 
 def get_temperature_features(dry_bulb, dew_pnt):
@@ -219,25 +232,27 @@ def remove_outliers(x):
     return x.clip(m-2.5*std, m+2.5*std)
 
 
-def create_features(ts, look_ahead=1):
+def create_lag_features(ts, look_ahead=1):
 
     """
     Features:
-        - 10 most correlated lags
+        - 15 most correlated lags
 
     :param ts:
     :param look_ahead:
     :return:
     """
 
-    acfs, conf = acf(ts, 100)
-    acfs = np.asarray(acfs[1:])
+    acfs, conf = acf(ts, 200)
+    acfs = np.asarray(acfs)
 
     most_corr = [v > conf for v in acfs]
-    if sum(most_corr) >= 1:
-        corr_lags = np.argsort(acfs[most_corr])[-10:]
+    if sum(most_corr) >= 16:
+        corr_lags = np.argsort(acfs[most_corr])
+        corr_lags = corr_lags[-(min(15, len(corr_lags))+1):-1]
         corr_lags = sorted(corr_lags)
-        look_back = corr_lags[-1] + 1
+        look_back = corr_lags[-1]
+        corr_lags = np.negative(corr_lags)
     else:
         look_back = 20
         corr_lags = range(look_back)
@@ -247,8 +262,11 @@ def create_features(ts, look_ahead=1):
     # use only the most correlated lags
     x = np.array([X[corr_lags] for X in x])
 
-    x = pd.DataFrame(data=x, index=ts.index.get_values()[(look_back-1):(-look_ahead)])
-    y = pd.DataFrame(data=y, index=ts.index.get_values()[(look_back-1):(-look_ahead)])
+    x = pd.DataFrame(data=x,
+                     index=ts.index.get_values()[(look_back-1):(-look_ahead)],
+                     columns=map(lambda l: 'lag.%d' % -l, corr_lags))
+    y = pd.DataFrame(data=y,
+                     index=ts.index.get_values()[(look_back-1):(-look_ahead)])
     return x, y
 
 

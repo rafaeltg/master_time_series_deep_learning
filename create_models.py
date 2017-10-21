@@ -22,7 +22,7 @@ def supervised_model_params(name, layers, p={}):
     p.update(dict(
         name=name,
         layers=layers,
-        activation=hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
+        activation=hp_choice(['relu', 'tanh', 'linear']),
         dropout=[hp_float(0, 0.5)] * len(layers),
         early_stopping=True,
         patient=hp_int(1, 40),
@@ -34,14 +34,18 @@ def supervised_model_params(name, layers, p={}):
 def create_lstm(dataset, save=True):
 
     def lstm(name, layers):
-        return supervised_model_params(
-            name=name,
-            layers=layers,
-            p={
-                'cell_type': 'lstm',
-                'stateful': False,
-            },
-        )
+        m = {
+            'name': name,
+            'layers': layers,
+            'cell_type': 'lstm',
+            'stateful': False,
+            'dropout': [hp_float(0, 0.5)] * len(layers),
+            'recurrent_dropout': [hp_float(0, 0.5)] * len(layers),
+            'early_stopping': True,
+            'patient': hp_int(1, 50),
+            'min_delta': hp_float(1e-5, 1e-4)
+        }
+        return add_model_params(m)
 
     name = 'lstm_%s' % dataset
     lstm_space = hp_space({
@@ -66,7 +70,7 @@ def create_sae(dataset, save=True):
         'class_name': 'Autoencoder',
         'config': add_model_params({
             'n_hidden': hp_int(8, 512),
-            'enc_activation': hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
+            'enc_activation': hp_choice(['relu', 'tanh', 'linear']),
             'l1_reg': hp_float(0, 0.001),
             'l2_reg': hp_float(0, 0.001)
         })
@@ -95,7 +99,7 @@ def create_sdae(dataset, save=True):
         'class_name': 'DenoisingAutoencoder',
         'config': add_model_params({
             'n_hidden': hp_int(8, 512),
-            'enc_activation': hp_choice(['relu', 'tanh', 'sigmoid', 'linear']),
+            'enc_activation': hp_choice(['relu', 'tanh', 'linear']),
             'l1_reg': hp_float(0, 0.001),
             'l2_reg': hp_float(0, 0.001),
             'corr_type': hp_choice(['gaussian', 'masking']),

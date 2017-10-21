@@ -25,7 +25,7 @@ cv_params = {
     },
 
     'energy': {
-        "window": 7247,
+        "window": 11711,
         "horizon": 1440,
         "fixed": False,
         "by": 1440
@@ -41,7 +41,7 @@ def create_opt_inputs(model, dt):
                 "class": "cmaes",
                 "params": {
                     "pop_size": 24,
-                    "max_iter": 50
+                    "max_iter": 60
                 }
             },
             "obj_fn": {

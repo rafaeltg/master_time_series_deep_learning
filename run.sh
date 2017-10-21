@@ -5,6 +5,7 @@ datasets=()
 models=()
 shutdown=false
 
+
 function update_pydl {
     cd ../pydl
     git up
@@ -58,7 +59,7 @@ function run {
 }
 
 
-while getopts 'pud:m:s' flag; do
+while getopts 'pud:m:os' flag; do
   case "${flag}" in
     p) update_pydl ;;
     u) update_master ;;
