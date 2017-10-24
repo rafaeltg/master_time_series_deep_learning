@@ -6,14 +6,36 @@ models=()
 shutdown=false
 
 
-function update_pydl {
-    cd ../pydl
+function install {
+    printf "\nInstalling $1..."
+    rm -rf $1
+    git clone "https://github.com/rafaeltg/$1.git"
+    cd $1
+    pip3 install -r requirements.txt -U
+    python3.5 setup.py install --force -O2
+    cd ..
+}
+
+function install_all {
+    curr_dir=`pwd`
+    cd ..
+    install "pyts"
+    install "pydl"
+    cd $curr_dir
+}
+
+
+function update {
+    printf "\nUpdating $1..."
+    cd $1
     git up
     pip3 install -r requirements.txt -U
-    sudo python3.5 setup.py install --force -O2
+    python3.5 setup.py install --force -O2
+    cd ..
 }
 
 function update_master {
+    echo "Updating master..."
     git up
     chmod +x create_inputs.py create_outputs.py
 
@@ -22,6 +44,15 @@ function update_master {
 
     user=`whoami`
     sudo chown -R $user:$user results
+}
+
+function update_all {
+    curr_dir=`pwd`
+    cd ..
+    update "pyts"
+    update "pydl"
+    cd $curr_dir
+    update_master
 }
 
 
@@ -52,17 +83,17 @@ function run {
         done
     done
 
-    echo "Creating outputs..."
+    printf "\nCreating outputs..."
 	./create_outputs.py --models ${models[*]} --datasets ${datasets[*]}
 
 	tar -zcf ../results.tar.gz results/
 }
 
 
-while getopts 'pud:m:os' flag; do
+while getopts 'ipud:m:os' flag; do
   case "${flag}" in
-    p) update_pydl ;;
-    u) update_master ;;
+    i) install_all ;;
+    u) update_all ;;
     d) datasets=( $(IFS=" " echo "$OPTARG") ) ;;
     m) models=( $(IFS=" " echo "$OPTARG") ) ;;
     s) shutdown=true ;;

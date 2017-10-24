@@ -5,7 +5,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from datetime import datetime, timedelta
-from pydl.datasets import mackey_glass, get_stock_historical_data, get_log_return, create_dataset, load_csv, acf, test_stationarity
+from pyts import mackey_glass, get_historical_data, log_ret, create_dataset, load_csv, test_stationarity, correlated_lags
 
 
 def create_mg():
@@ -32,7 +32,7 @@ def create_mg():
             index_col='Idx',
         )
     else:
-        mg = mackey_glass(sample_len=sample_len, seed=42)
+        mg = mackey_glass(n=sample_len, seed=42)
         mg.to_csv(input_file, index_label='Idx')
 
     # Describe input data
@@ -77,18 +77,18 @@ def create_sp500():
     #     sp500_log_ret = get_log_return(sp500['Close'])
     #     sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
 
-    sp500 = get_stock_historical_data('^GSPC', '2000-01-01', end, usecols=['Close'])
-    sp500_log_ret = get_log_return(sp500)
+    sp500 = get_historical_data('^GSPC', '2000-01-01', end, usecols=['Close'])
+    sp500_log_ret = log_ret(sp500)
 
     # Describe input data
     #describe_data(sp500_log_ret, 'sp500')
 
     # Use info from Tokyo and Hang Seng Index
-    n225 = get_stock_historical_data('^N225', '2000-01-01', end, usecols=['Close'])
-    n225_log_ret = get_log_return(n225)
+    n225 = get_historical_data('^N225', '2000-01-01', end, usecols=['Close'])
+    n225_log_ret = log_ret(n225)
 
-    hsi = get_stock_historical_data('^HSI', '2000-01-01', end, usecols=['Close'])
-    hsi_log_ret = get_log_return(hsi)
+    hsi = get_historical_data('^HSI', '2000-01-01', end, usecols=['Close'])
+    hsi_log_ret = log_ret(hsi)
 
     dt = pd.concat([sp500_log_ret['Close'], n225_log_ret['Close'], hsi_log_ret['Close']],
                    axis=1,
@@ -133,7 +133,7 @@ def create_energy():
                     dtype={'DryBulb': np.float64, 'DewPnt': np.float64, 'Demand': np.float64})
 
     # Transform demand data
-    demand = get_log_return(data['Demand'], periods=1)
+    demand = log_ret(data['Demand'], periods=1)
 
     # Describe input data
     describe_data(demand, 'energy')
@@ -243,14 +243,8 @@ def create_lag_features(ts, look_ahead=1):
     :return:
     """
 
-    acfs, conf = acf(ts, 200)
-    acfs = np.asarray(acfs)
-
-    most_corr = [v > conf for v in acfs]
-    if sum(most_corr) >= 16:
-        corr_lags = np.argsort(acfs[most_corr])
-        corr_lags = corr_lags[-(min(15, len(corr_lags))+1):-1]
-        corr_lags = sorted(corr_lags)
+    corr_lags = correlated_lags(ts, corr_lags=15, max_lags=200)
+    if len(corr_lags) == 15:
         look_back = corr_lags[-1]
         corr_lags = np.negative(corr_lags)
     else:

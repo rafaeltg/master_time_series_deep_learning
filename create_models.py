@@ -1,5 +1,5 @@
 from pydl.hyperopt import *
-from pydl.models.utils import save_json
+from pydl.models import save_json
 
 
 data_sets = ["sp500", "mg", "energy"]

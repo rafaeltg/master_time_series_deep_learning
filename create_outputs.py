@@ -4,7 +4,8 @@ import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from pydl.datasets import load_npy, acf
+from pyts import load_npy, acf
+
 
 """
     1. Forecasts
