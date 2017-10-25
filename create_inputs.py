@@ -41,7 +41,8 @@ def create_opt_inputs(model, dt):
                 "class": "cmaes",
                 "params": {
                     "pop_size": 24,
-                    "max_iter": 60
+                    "max_iter": 60,
+                    "verbose": 10
                 }
             },
             "obj_fn": {
