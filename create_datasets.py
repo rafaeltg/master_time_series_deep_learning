@@ -13,7 +13,7 @@ def create_mg():
     """
 
    - Data: Mackey-Glass time-series (tau = 17, delta_t = 10)
-   - Sample size: 4000 points
+   - Sample size: 5000 points
    - Train size: 80%
    - Test size: 20%
    - Forecast window: 1 step ahead
@@ -244,16 +244,15 @@ def create_lag_features(ts, look_ahead=1):
     """
 
     corr_lags = correlated_lags(ts, corr_lags=15, max_lags=200)
-    if len(corr_lags) == 15:
-        look_back = corr_lags[-1]
-        corr_lags = np.negative(corr_lags)
-    else:
-        look_back = 20
-        corr_lags = range(look_back)
+    if len(corr_lags) < 5:
+        corr_lags = range(1, 21)
+
+    look_back = corr_lags[-1]
 
     x, y = create_dataset(ts, look_back, look_ahead)
 
     # use only the most correlated lags
+    corr_lags = np.negative(corr_lags)
     x = np.array([X[corr_lags] for X in x])
 
     x = pd.DataFrame(data=x,

@@ -18,10 +18,10 @@ cv_params = {
     },
 
     'mg': {
-        "window": 2311,
-        "horizon": 550,
+        "window": 2474,
+        "horizon": 495,
         "fixed": False,
-        "by": 550
+        "by": 495
     },
 
     'energy': {
@@ -42,7 +42,9 @@ def create_opt_inputs(model, dt):
                 "params": {
                     "pop_size": 24,
                     "max_iter": 60,
-                    "verbose": 10
+                    "verbose": 10,
+                    "ftarget": 1.5e-4,
+                    "tolfun": 1e-4
                 }
             },
             "obj_fn": {
@@ -50,7 +52,8 @@ def create_opt_inputs(model, dt):
                     "method": "split",
                     "params": {
                         "test_size": 0.2
-                    }
+                    },
+                    "scoring": "mse"
                 }
             },
             "max_threads": 24
@@ -151,10 +154,12 @@ if __name__ == '__main__':
     create_datasets(args.datasets)
 
     for m in args.models:
+        model_fn = models_fn[m]
+
         for d in args.datasets:
 
             # Create model config
-            models_fn[m](d)
+            model_fn(d)
 
             create_opt_inputs(m, d)
             create_cv_inputs(m, d)

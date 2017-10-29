@@ -86,7 +86,7 @@ function run {
     printf "\nCreating outputs..."
 	./create_outputs.py --models ${models[*]} --datasets ${datasets[*]}
 
-	tar -zcf ../results.tar.gz results/
+	tar -zcf ../results.tar.gz results/ *.dat
 }
 
 

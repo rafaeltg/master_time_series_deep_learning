@@ -2,8 +2,6 @@ from pydl.hyperopt import *
 from pydl.models import save_json
 
 
-data_sets = ["sp500", "mg", "energy"]
-
 model_params = {
     'nb_epochs': hp_int(50, 500),
     'batch_size': hp_int(32, 1024),
