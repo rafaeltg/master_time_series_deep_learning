@@ -3,6 +3,7 @@
 curr_dir=`pwd`
 datasets=()
 models=()
+outputs=false
 shutdown=false
 
 
@@ -40,7 +41,7 @@ function update_master {
     chmod +x create_inputs.py create_outputs.py
 
     rm -rf data inputs models results
-    mkdir -p {data,inputs,models,results/{optimize,fit,cv,predict,eval,figs,desc}}
+    mkdir -p {data,inputs,models,results/{cmaes,optimize,fit,cv,predict,eval,figs,desc}}
 
     user=`whoami`
     sudo chown -R $user:$user results
@@ -63,6 +64,12 @@ function do_op {
     pydl "$3" -c "$in" -o "$out"
 }
 
+function save_opt_output {
+    dir_name="results/cmaes/$1/$2"
+    mkdir -p ${dir_name}
+    mv outcmaes* ${dir_name}
+}
+
 function run {
 
     echo "Creating inputs..."
@@ -75,6 +82,7 @@ function run {
             printf "\n>> %s - %s ------ %s\n\n" "$ds" "$m" "$(date +'%d/%m/%Y %H:%m:%S')"
 
             do_op "$m" "$ds" "optimize"
+            save_opt_output "$m" "$ds"
             do_op "$m" "$ds" "cv" &
             do_op "$m" "$ds" "fit"
             do_op "$m" "$ds" "predict"
@@ -82,11 +90,6 @@ function run {
     	    wait
         done
     done
-
-    printf "\nCreating outputs..."
-	./create_outputs.py --models ${models[*]} --datasets ${datasets[*]}
-
-	tar -zcf ../results.tar.gz results/ *.dat
 }
 
 
@@ -97,6 +100,7 @@ while getopts 'ipud:m:os' flag; do
     d) datasets=( $(IFS=" " echo "$OPTARG") ) ;;
     m) models=( $(IFS=" " echo "$OPTARG") ) ;;
     s) shutdown=true ;;
+    o) outputs=true ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
@@ -110,6 +114,12 @@ fi
 if [ -z "$models" ]; then
     echo "No models selected"
     exit 1
+fi
+
+if [ "$outputs" = true ]; then
+    printf "\nCreating outputs..."
+	./create_outputs.py --models ${models[*]} --datasets ${datasets[*]}
+	exit 0
 fi
 
 run

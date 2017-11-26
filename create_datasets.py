@@ -2,16 +2,16 @@ import os
 import calendar
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 from joblib import Parallel, delayed
 from pandas.tseries.holiday import USFederalHolidayCalendar
-from datetime import datetime, timedelta
-from pyts import mackey_glass, get_historical_data, log_ret, create_dataset, load_csv, test_stationarity, correlated_lags
+from datetime import datetime
+from pyts import mackey_glass, lorenz, log_ret, create_dataset, load_csv, test_stationarity, correlated_lags
 
 
 def create_mg():
 
     """
-
    - Data: Mackey-Glass time-series (tau = 17, delta_t = 10)
    - Sample size: 5000 points
    - Train size: 80%
@@ -44,7 +44,7 @@ def create_mg():
     # split into train and test sets
     train_idx = int(len(x) * train_size)
     x_train, y_train = x[:train_idx], y[:train_idx]
-    x_test, y_test = x[train_idx:len(x)], y[train_idx:len(y)]
+    x_test, y_test = x[train_idx:], y[train_idx:]
 
     np.save('data/mg_train_x.npy', x_train)
     np.save('data/mg_train_y.npy', y_train)
@@ -53,76 +53,58 @@ def create_mg():
     np.save('data/mg_test_y_index.npy', range(len(x_test)))
 
 
-def create_sp500():
+def create_lorenz():
 
     """
+   - Data: X component of Lorenz time-series (sigma=10, rho=28, beta=8/3)
+   - Sample size: 8000 points
+   - Train size: 80%
+   - Test size: 20%
+   - Forecast window: 1 step ahead
 
-    - Data: Daily log return of S&P500 closing value
-    - Sample size: from 2000-01-01 to 2017-07-01
-    - Train size: from 2000-01-01 to 2016-06-30
-    - Test size: 1 year (from 2016-07-01 to 2017-07-01)
-    - Forecast window: 1 step ahead
+   """
 
-    """
+    input_file = 'data_sets/lorenz.csv'
+    sample_len = 8000
+    look_ahead = 1
+    train_size = .8
 
-    input_file = 'data_sets/sp500_daily_log_return.csv'
-    end = "2017-07-01"
-
-    # if os.path.exists(input_file):
-    #     sp500_log_ret = load_csv(filename=input_file,
-    #                              dtype={'Close': np.float64},
-    #                              index_col='Date')
-    # else:
-    #     sp500 = get_stock_historical_data('GSPC', '2000-01-01', end, usecols=['Close'])
-    #     sp500_log_ret = get_log_return(sp500['Close'])
-    #     sp500_log_ret.to_csv(input_file, date_format='%m-%d-%Y', index_label='Date')
-
-    sp500 = get_historical_data('^GSPC', '2000-01-01', end, usecols=['Close'])
-    sp500_log_ret = log_ret(sp500)
+    if os.path.exists(input_file):
+        lrz = load_csv(
+            filename=input_file,
+            dtype={'X': np.float64},
+            index_col='Idx',
+        )
+    else:
+        lrz = lorenz(n=sample_len)['X']
+        lrz = pd.Series(np.squeeze(MinMaxScaler().fit_transform(lrz.values.reshape(-1, 1))), index=lrz.index, name='X')
+        lrz.to_csv(input_file, header=True, index_label='Idx')
 
     # Describe input data
-    #describe_data(sp500_log_ret, 'sp500')
+    describe_data(lrz, 'lorenz')
 
-    # Use info from Tokyo and Hang Seng Index
-    n225 = get_historical_data('^N225', '2000-01-01', end, usecols=['Close'])
-    n225_log_ret = log_ret(n225)
-
-    hsi = get_historical_data('^HSI', '2000-01-01', end, usecols=['Close'])
-    hsi_log_ret = log_ret(hsi)
-
-    dt = pd.concat([sp500_log_ret['Close'], n225_log_ret['Close'], hsi_log_ret['Close']],
-                   axis=1,
-                   join_axes=[sp500_log_ret.index],
-                   keys=['GSPC', 'N225', 'HSI']).dropna()
-
-    print(dt.columns.values)
-    print(dt.head(10))
-
-    return
-
-    # reshape into X=[X(t-look_back), ..., X(t)] and Y=[X(t+1), ..., X(t+look_ahead)]
-    x, y = create_lag_features(sp500_log_ret)
+    # reshape into X=[t-look_back, t] and Y=[t+1, t+look_ahead]
+    x, y = create_lag_features(lrz, look_ahead)
 
     # split into train and test sets
-    test_start = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=-365)).strftime("%Y-%m-%d")
-    x_train, y_train = x[:test_start], y[:test_start]
-    x_test, y_test = x[test_start:], y[test_start:]
+    train_idx = int(len(x) * train_size)
+    x_train, y_train = x[:train_idx], y[:train_idx]
+    x_test, y_test = x[train_idx:], y[train_idx:]
 
-    np.save('data/sp500_train_x.npy', x_train.values)
-    np.save('data/sp500_train_y.npy', y_train.values)
-    np.save('data/sp500_test_x.npy', x_test.values)
-    np.save('data/sp500_test_y.npy', y_test.values)
-    np.save('data/sp500_test_y_index.npy', y_test.index.get_values())
+    np.save('data/lorenz_train_x.npy', x_train)
+    np.save('data/lorenz_train_y.npy', y_train)
+    np.save('data/lorenz_test_x.npy', x_test)
+    np.save('data/lorenz_test_y.npy', y_test)
+    np.save('data/lorenz_test_y_index.npy', range(len(x_test)))
 
 
 def create_energy():
 
     """
-
-    - Data:
-    - Sample size:
-    - Train size:
-    - Test size:
+    - Data: ISO New England hourly energy demand from 01-01-2015 to 31-12-2016
+    - Sample size: 17544
+    - Train size: from 04-01-2015 to 30-11-2016 (16727)
+    - Test size: from 01-12-2016 to 31-12-2016 (743)
     - Forecast window: 1 step ahead
 
     """
@@ -142,12 +124,13 @@ def create_energy():
     x, y = create_lag_features(demand)
 
     # Calculate Date-time features
-    # time_feats = get_date_time_features(x.index.get_values())
-    # x = pd.concat([x, time_feats], axis=1, join_axes=[x.index])
+    time_feats = get_date_time_features(x.index.get_values())
+    x = pd.concat([x, time_feats], axis=1, join_axes=[x.index])
 
     # split into train and test sets
-    test_start = '2016-11-01'
-    x_train, y_train = x[:test_start], y[:test_start]
+    train_end = '2016-11-30T23:59:59'
+    test_start = '2016-12-01'
+    x_train, y_train = x[:train_end], y[:train_end]
     x_test, y_test = x[test_start:], y[test_start:]
 
     np.save('data/energy_train_x.npy', x_train.values)
@@ -155,11 +138,6 @@ def create_energy():
     np.save('data/energy_test_x.npy', x_test.values)
     np.save('data/energy_test_y.npy', y_test.values)
     np.save('data/energy_test_y_index.npy', y_test.index.get_values())
-
-    # # Add temperature features
-    # temp_feats = get_temperature_features(data.DryBulb, data.DewPnt)
-    # data = data.assign(**temp_feats)
-    # data.drop(['DryBulb', 'DewPnt'], axis=1, inplace=True)
 
 
 def get_date_time_features(dates):
@@ -270,7 +248,7 @@ def describe_data(ts, dataset):
 
 dt_fn = {
     'mg': create_mg,
-    'sp500': create_sp500,
+    'lorenz': create_lorenz,
     'energy': create_energy
 }
 

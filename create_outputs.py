@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python3.6
 
 import argparse
 import numpy as np
@@ -27,12 +27,13 @@ from pyts import load_npy, acf
 
 titles = {
     'mg': 'Mackey-Glass',
-    'sp500': 'S&P500 daily log-returns',
-    'energy': ''
+    'lorenz': 'Lorenz',
+    'energy': 'ISO New England Energy Demand'
 }
+
 idx_transf = {
     'mg': lambda x: x,
-    'sp500': pd.to_datetime,
+    'lorenz': lambda x: x,
     'energy': pd.to_datetime
 }
 
@@ -50,9 +51,9 @@ def make_plots(models, ds):
         for m in models:
             y_test_pred = load_npy('results/predict/%s_%s_preds.npy' % (m, d))[:, 0]
 
-            idxs = idxs[0:100]
-            y_test = y_test[0:100]
-            y_test_pred = y_test_pred[0:100]
+            idxs = idxs
+            y_test = y_test
+            y_test_pred = y_test_pred
 
             # Actual x Predicted
             plt.figure(1)
@@ -60,7 +61,7 @@ def make_plots(models, ds):
             ax.plot(idxs, y_test, color='red', label='Actual')
             ax.plot(idxs, y_test_pred, color='blue', label='Predicted')
             ax.set_xlim(idxs[0], idxs[-1])
-            ax.set_ylim(min(min(y_test), min(y_test_pred))*1.1, max(max(y_test), max(y_test_pred))*1.6)
+            ax.set_ylim(min(min(y_test), min(y_test_pred))*0.8, max(max(y_test), max(y_test_pred))*1.3, auto=True)
             plt.legend(loc='best')
             plt.title(titles[d])
             fig.autofmt_xdate()
@@ -83,7 +84,7 @@ def make_plots(models, ds):
             fig, ax = plt.subplots()
             ax.scatter(y_test_pred, errs, s=7)
             ax.axhline(y=0, color='black', ls='--')
-            ax.set_ylim(-.2, .2)
+            ax.set_ylim( (min(errs)*1.1) if min(errs) < 0 else 0, max(errs)*1.1)
             plt.title(titles[d] + ' Forecast Residuals')
             plt.xlabel('Predicted')
             plt.ylabel('Residual')
@@ -101,7 +102,7 @@ def make_plots(models, ds):
         # Residuals boxplot
         plt.figure(1)
         plt.boxplot(model_errors, labels=[m.upper() for m in models])
-        plt.title(titles[d])
+        plt.title(titles[d] + ' Forecast Residuals')
         plt.ylabel('Residual')
         plt.xlabel('Model')
         plt.savefig(fname='results/figs/%s_residuals_boxplot.png' % d)
