@@ -13,7 +13,7 @@ function install {
     git clone "https://github.com/rafaeltg/$1.git"
     cd $1
     pip3 install -r requirements.txt -U
-    python3.5 setup.py install --force -O2
+    python3 setup.py install --force -O2
     cd ..
 }
 
@@ -31,7 +31,8 @@ function update {
     cd $1
     git up
     pip3 install -r requirements.txt -U
-    python3.5 setup.py install --force -O2
+    python3 setup.py install --force -O2
+    sudo rm -rf build dist "$1.egg-info" __pycache__
     cd ..
 }
 
