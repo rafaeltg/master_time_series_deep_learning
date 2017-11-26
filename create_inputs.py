@@ -55,7 +55,7 @@ def create_opt_inputs(model, dt):
                     "scoring": "mse"
                 }
             },
-            "max_threads": 6
+            "max_threads": 24
         },
         'data_set': {
             "data_x": {

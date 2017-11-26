@@ -91,6 +91,8 @@ function run {
     	    wait
         done
     done
+
+    tar -zcf ../results.tar.gz results/
 }
 
 
